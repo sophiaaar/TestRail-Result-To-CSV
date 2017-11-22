@@ -39,6 +39,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="dotnet\Gurock\TestRail\APIClient.cs" />
     <Compile Include="dotnet\Gurock\TestRail\APIException.cs" />
+    <Compile Include="Configuration\ConfigReader.cs" />
+    <Compile Include="Configuration\IConfigReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dotnet\Gurock.TestRail.csproj" />

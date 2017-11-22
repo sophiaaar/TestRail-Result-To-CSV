@@ -14,6 +14,8 @@ namespace TestRailResultExport
         public static List<int> suiteIDs = new List<int>();
         public static List<int> runIDs = new List<int>();
 
+        private static readonly IConfigReader _configReader = new ConfigReader();
+
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -31,9 +33,9 @@ namespace TestRailResultExport
 
         private static APIClient ConnectToTestrail()
         {
-            APIClient client = new APIClient(""); //testrail url
-            client.User = ""; //username
-            client.Password = "";
+			APIClient client = new APIClient("http://qatestrail.hq.unity3d.com");
+			client.User = _configReader.TestRailUser;
+			client.Password = _configReader.TestRailPass;
             return client;
         }
 
