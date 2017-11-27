@@ -18,19 +18,13 @@ namespace TestRailResultExport
 
         private static readonly IConfigReader _configReader = new ConfigReader();
 
+        //private static CsvBuilders _csvBuilder;
+
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            //APIClient client = ConnectToTestrail();
 
-            //milestone 88 is 2017.3
-            //JArray arrayOfSuites = (JArray)client.SendGet("get_suites/2");
-
-            //List<int> suiteIds = GetAllSuites(arrayOfSuites);
             GetAllTests();
-
-
-
         }
 
         private static APIClient ConnectToTestrail()
@@ -50,35 +44,10 @@ namespace TestRailResultExport
             JArray planArray = (JArray)client.SendGet("get_plans/2&milestone_id=" + milestoneID);
 			//The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
-
-
-			//JObject parsedPlan = (JObject)ParsePlans(planArray);
-            //List<JArray> ListOfRunsInPlan = GetRunsInPlan(planArray, client);
-
-			//FileStream ostrm;
-			//StreamWriter writer;
-			//TextWriter oldOut = Console.Out;
-			//try
-			//{
-			//	ostrm = new FileStream("ResultsOverview.csv", FileMode.OpenOrCreate, FileAccess.Write);
-			//	writer = new StreamWriter(ostrm);
-			//}
-			//catch (Exception e)
-			//{
-			//	Console.WriteLine("Cannot open Results.csv for writing");
-			//	Console.WriteLine(e.Message);
-			//	return;
-			//}
-			//Console.SetOut(writer);
-
-            string rawCsv = CreateCSVOfRuns(c); //Needed so ParseRuns is called
+            //string rawCsv = CreateCSVOfRuns(c, suiteIDs, runIDs); //Needed so ParseRuns is called
 			//Console.WriteLine(rawCsv);
 
-
-
-			//Console.SetOut(oldOut);
-			//writer.Close();
-			//ostrm.Close();
+            GetSuitesAndRuns(c);
 
 			FileStream ostrm2;
 			StreamWriter writer2;
@@ -91,27 +60,30 @@ namespace TestRailResultExport
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("Cannot open Results.csv for writing");
+				Console.WriteLine("Cannot open Tests.csv for writing");
 				Console.WriteLine(e.Message);
 				return;
 			}
 			Console.SetOut(writer2);
 
-			//int fileNum = 1;
-			// (int runID in runIDs)
 			for (int i = 0; i < runIDs.Count; i++)
 			{
 				JArray testsArray = (JArray)client.SendGet("get_tests/" + runIDs[i]);
 
+                string suiteName = "";
 
-				JObject suite = (JObject)client.SendGet($"get_suite/{suiteIDs[i]}");
-				string suiteName = suite.Property("name").Value.ToString();
+                if (suiteIDs[i] != 0)
+                {
+                    JObject suite = (JObject)client.SendGet($"get_suite/{suiteIDs[i]}");
+                    suiteName = suite.Property("name").Value.ToString();
+                }
+                else
+                {
+                    suiteName = "deleted";
+                }
 
 				string csvOfTests = CreateCSVOfTests(testsArray, suiteIDs[i], suiteName);
 				Console.WriteLine(csvOfTests);
-
-
-				//fileNum++;
 
 			}
 
@@ -121,26 +93,22 @@ namespace TestRailResultExport
 			{
 				JArray testsArray = (JArray)client.SendGet("get_tests/" + runInPlanIds[i]);
 
+                string suiteName = "";
 
-
-
-                JObject suite = (JObject)client.SendGet($"get_suite/{suiteInPlanIDs[i]}");
-				string suiteName = suite.Property("name").Value.ToString();
+                if (suiteInPlanIDs[i] != 0)
+                {
+                    JObject suite = (JObject)client.SendGet($"get_suite/{suiteInPlanIDs[i]}");
+                    suiteName = suite.Property("name").Value.ToString();
+                }
+                else
+                {
+                    suiteName = "deleted";
+                }
 
 				string csvOfTests = CreateCSVOfTests(testsArray, suiteInPlanIDs[i], suiteName);
 				Console.WriteLine(csvOfTests);
 
-
-				//fileNum++;
-
 			}
-
-			//foreach (JArray jArr in ListOfRunsInPlan)
-			//{
-			//	string planCsv = CreateCSVOfPlanRuns(jArr);
-			//	Console.WriteLine(planCsv);
-			//}
-            //Console.WriteLine((planArray.ToString()));
 
 			Console.SetOut(oldOut2);
 			writer2.Close();
@@ -148,58 +116,6 @@ namespace TestRailResultExport
 			Console.WriteLine("Done");
         }
 
-        private static string CreateCSVOfRuns(JArray rawData)
-        {
-            StringBuilder csv = new StringBuilder();
-
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Run ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
-            csv.Append(header);
-
-            JArray parsedArray = ParseRuns(rawData);
-            for (int i = 0; i < parsedArray.Count; i++)
-            {
-                JObject arrayObject = parsedArray[i].ToObject<JObject>();
-                string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
-                csv.Append(newLine);
-            }
-
-            return csv.ToString();
-        }
-
-		//private static string CreateCSVOfPlanRuns(JArray rawData)
-		//{
-		//	StringBuilder csv = new StringBuilder();
-
-		//	string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Plan ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
-		//	//csv.Append(header);
-
-		//	JArray parsedArray = ParseRuns(rawData);
-		//	for (int i = 0; i < parsedArray.Count; i++)
-		//	{
-		//		JObject arrayObject = parsedArray[i].ToObject<JObject>();
-		//		string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("plan_id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
-		//		csv.Append(newLine);
-		//	}
-
-		//	return csv.ToString();
-		//}
-
-        private static string CreateCSVOfTests(JArray arrayOfTests, int suiteId, string suiteName)
-        {
-            StringBuilder csv = new StringBuilder();
-
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", "Suite ID", "Suite Name", "Run ID", "Test ID", "Case ID", "Title", "Status", "Estimate", "\n");
-			csv.Append(header);
-
-            for (int i = 0; i < arrayOfTests.Count; i++)
-            {
-                JObject arrayObject = arrayOfTests[i].ToObject<JObject>();
-                string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", suiteId, suiteName, arrayObject.Property("run_id").Value, arrayObject.Property("id").Value, arrayObject.Property("case_id").Value, "\"" + arrayObject.Property("title").Value.ToString()+ "\"", GetStatus(arrayObject.Property("status_id").Value.ToString()), arrayObject.Property("estimate").Value, "\n");
-                csv.Append(newLine);
-            }
-
-            return csv.ToString();
-        }
 
         private static string GetStatus(string rawValue)
         {
@@ -227,7 +143,7 @@ namespace TestRailResultExport
             {
                 return "Other";
             }
-                
+
         }
 
         private static List<int> GetAllSuites(JArray arrayOfSuites)
@@ -242,69 +158,6 @@ namespace TestRailResultExport
             return listOfSuiteIds;
         }
 
-		public static JObject ParseRun(JObject jObj)
-		{
-			jObj.Property("assignedto_id").Remove();
-			jObj.Property("config").Remove();
-			jObj.Property("config_ids").Remove();
-			jObj.Property("include_all").Remove();
-			jObj.Property("custom_status2_count").Remove();
-			jObj.Property("custom_status3_count").Remove();
-			jObj.Property("custom_status4_count").Remove();
-			jObj.Property("custom_status5_count").Remove();
-			jObj.Property("custom_status6_count").Remove();
-			jObj.Property("custom_status7_count").Remove();
-			jObj.Property("created_on").Remove();
-			jObj.Property("created_by").Remove();
-			return jObj;
-		}
-
-		public static JArray ParseRuns(JArray array)
-		{
-			for (int i = 0; i < array.Count; i++)
-			{
-				JObject arrayObject = array[i].ToObject<JObject>();
-
-                int suite_id = Int32.Parse(arrayObject.Property("suite_id").Value.ToString());
-
-                int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
-
-                suiteIDs.Add(suite_id);
-                runIDs.Add(run_id);
-
-				arrayObject = ParseRun(arrayObject);
-			}
-			return array;
-		}
-
-		public static JObject ParsePlan(JObject jObj)
-		{
-			jObj.Property("assignedto_id").Remove();
-			jObj.Property("completed_on").Remove();
-			jObj.Property("blocked_count").Remove();
-			jObj.Property("retest_count").Remove();
-			jObj.Property("custom_status1_count").Remove();
-			jObj.Property("custom_status2_count").Remove();
-			jObj.Property("custom_status3_count").Remove();
-			jObj.Property("custom_status4_count").Remove();
-			jObj.Property("custom_status5_count").Remove();
-			jObj.Property("custom_status6_count").Remove();
-			jObj.Property("custom_status7_count").Remove();
-			jObj.Property("created_on").Remove();
-			jObj.Property("created_by").Remove();
-			return jObj;
-		}
-
-		public static JArray ParsePlans(JArray array)
-		{
-			for (int i = 0; i < array.Count; i++)
-			{
-				JObject arrayObject = array[i].ToObject<JObject>();
-				arrayObject = ParsePlan(arrayObject);
-                //arrayObject = GetRunsInPlan(arrayObject);
-			}
-			return array;
-		}
 
         private static List<string> GetRunsInPlan(JArray planArray, APIClient client)
         {
@@ -334,13 +187,6 @@ namespace TestRailResultExport
                         {
                             JObject entriesObject = entries[k].ToObject<JObject>();
 
-                            //string suiteInPlanId = entries.Property("suite_id").Value.ToString();
-                            //suiteInPlanIDs.Add(Int32.Parse(suiteInPlanId));
-
-                            //JArray runs = (JArray)entries.Property("runs").First;
-                            //ListOfRunsInPlan.Add(runs);
-
-
 
                             JArray runsArray = (JArray)entriesObject.Property("runs").First;
 
@@ -359,15 +205,112 @@ namespace TestRailResultExport
                                     suiteInPlanIDs.Add(Int32.Parse(suiteInPlanId));
                                 }
                             }
-                        }
-
-
-                      					
+                        }                    					
                     }
                 }
 			}
             return runInPlanIds;
         }
 
+        public static void GetSuitesAndRuns(JArray runsArr)
+        {
+			for (int i = 0; i < runsArr.Count; i++)
+			{
+				JObject arrayObject = runsArr[i].ToObject<JObject>();
+
+				JProperty prop = arrayObject.Property("suite_id");
+                if (prop != null && prop.Value != null && !string.IsNullOrEmpty(prop.Value.ToString()))
+                {
+                    int suite_id = Int32.Parse(arrayObject.Property("suite_id").Value.ToString());
+
+                    int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
+
+                    suiteIDs.Add(suite_id);
+                    runIDs.Add(run_id);
+                }
+                else
+                {
+					int suite_id = 0;
+
+					int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
+
+					suiteIDs.Add(suite_id);
+					runIDs.Add(run_id);
+                }
+			}
+        }
+
+		public static string CreateCSVOfRuns(JArray rawData, List<int> suiteIDs, List<int> runIDs)
+		{
+			StringBuilder csv = new StringBuilder();
+
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Run ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
+			csv.Append(header);
+
+			//JArray parsedArray = ParseRuns(rawData);
+			for (int i = 0; i < rawData.Count; i++)
+			{
+				JObject arrayObject = rawData[i].ToObject<JObject>();
+
+				//int suite_id = Int32.Parse(arrayObject.Property("suite_id").Value.ToString());
+
+				//int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
+
+				//suiteIDs.Add(suite_id);
+				//runIDs.Add(run_id);
+
+
+				string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
+				csv.Append(newLine);
+			}
+
+			return csv.ToString();
+		}
+
+		public static string CreateCSVOfPlanRuns(JArray rawData, List<int> suiteIDs, List<int> runIDs)
+		{
+			StringBuilder csv = new StringBuilder();
+
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Plan ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
+			//csv.Append(header);
+
+			//JArray parsedArray = ParseRuns(rawData);
+			for (int i = 0; i < rawData.Count; i++)
+			{
+				JObject arrayObject = rawData[i].ToObject<JObject>();
+
+				//int suite_id = Int32.Parse(arrayObject.Property("suite_id").Value.ToString());
+
+				//int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
+
+				//suiteIDs.Add(suite_id);
+				//runIDs.Add(run_id);
+
+				string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("plan_id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
+				csv.Append(newLine);
+			}
+
+
+
+			return csv.ToString();
+		}
+
+
+		public static string CreateCSVOfTests(JArray arrayOfTests, int suiteId, string suiteName)
+		{
+			StringBuilder csv = new StringBuilder();
+
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", "Suite ID", "Suite Name", "Run ID", "Test ID", "Case ID", "Title", "Status", "Estimate","\n");
+			csv.Append(header);
+
+			for (int i = 0; i < arrayOfTests.Count; i++)
+			{
+				JObject arrayObject = arrayOfTests[i].ToObject<JObject>();
+                string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", suiteId, suiteName, arrayObject.Property("run_id").Value, arrayObject.Property("id").Value, arrayObject.Property("case_id").Value, "\"" + arrayObject.Property("title").Value.ToString() + "\"", GetStatus(arrayObject.Property("status_id").Value.ToString()), arrayObject.Property("estimate").Value, "\n");
+				csv.Append(newLine);
+			}
+
+			return csv.ToString();
+		}
     }
 }
