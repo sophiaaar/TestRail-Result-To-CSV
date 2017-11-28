@@ -23,8 +23,9 @@ namespace TestRailResultExport
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+            APIClient client = ConnectToTestrail();
 
-            GetAllTests();
+            GetAllTests(client);
         }
 
         private static APIClient ConnectToTestrail()
@@ -35,17 +36,55 @@ namespace TestRailResultExport
             return client;
         }
 
-        private static void GetAllTests()
+        private static JArray GetRunsForMilestone(APIClient client, string milestoneID)
         {
-            APIClient client = ConnectToTestrail();
+            return (JArray)client.SendGet("get_runs/2&milestone_id=" + milestoneID);
+        }
+
+        private static JArray GetPlansForMilestone(APIClient client, string milestoneID)
+        {
+            return (JArray)client.SendGet("get_plans/2&milestone_id=" + milestoneID);
+        }
+
+        private static JArray GetTestsInRun(APIClient client, string runID)
+        {
+            return (JArray)client.SendGet("get_tests/" + runID);
+        }
+
+        private static JArray GetCasesInSuite(APIClient client, string projectID, string suiteID)
+        {
+            return (JArray)client.SendGet("get_cases/" + projectID + "&suite_id=" + suiteID);
+        }
+
+        private static JArray GetSuitesInProject(APIClient client, string projectID)
+        {
+            return (JArray)client.SendGet("get_suites/" + projectID);
+        }
+
+        private static void GetAllCases(APIClient client)
+        {
+            JArray suitesArray = GetSuitesInProject(client, "2");
+
+            for (int i = 0; i < suitesArray.Count; i++)
+            {
+                JObject arrayObject = suitesArray[i].ToObject<JObject>();
+                string id = arrayObject.Property("id").Value.ToString();
+
+                JArray casesArray = GetCasesInSuite(client, "2", id);
+                //TODO: finish this
+            }
+        }
+
+        private static void GetAllTests(APIClient client)
+        {
+            //APIClient client = ConnectToTestrail();
 			Console.WriteLine("Enter milestone ID: ");
 			milestoneID = Console.ReadLine();
-			JArray c = (JArray)client.SendGet("get_runs/2&milestone_id=" + milestoneID);
-            JArray planArray = (JArray)client.SendGet("get_plans/2&milestone_id=" + milestoneID);
-			//The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
+            //JArray c = (JArray)client.SendGet("get_runs/2&milestone_id=" + milestoneID);
+            JArray c = GetRunsForMilestone(client, milestoneID);
+            JArray planArray = GetPlansForMilestone(client, milestoneID);
+            //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
-            //string rawCsv = CreateCSVOfRuns(c, suiteIDs, runIDs); //Needed so ParseRuns is called
-			//Console.WriteLine(rawCsv);
 
             GetSuitesAndRuns(c);
 
@@ -68,7 +107,8 @@ namespace TestRailResultExport
 
 			for (int i = 0; i < runIDs.Count; i++)
 			{
-				JArray testsArray = (JArray)client.SendGet("get_tests/" + runIDs[i]);
+                //JArray testsArray = (JArray)client.SendGet("get_tests/" + runIDs[i]);
+                JArray testsArray = GetTestsInRun(client, runIDs[i].ToString());
 
                 string suiteName = "";
 
@@ -91,7 +131,8 @@ namespace TestRailResultExport
 
 			for (int i = 0; i < runInPlanIds.Count; i++)
 			{
-				JArray testsArray = (JArray)client.SendGet("get_tests/" + runInPlanIds[i]);
+                //JArray testsArray = (JArray)client.SendGet("get_tests/" + runInPlanIds[i]);
+                JArray testsArray = GetTestsInRun(client, runInPlanIds[i].ToString());
 
                 string suiteName = "";
 
@@ -247,18 +288,9 @@ namespace TestRailResultExport
 			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Run ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
 			csv.Append(header);
 
-			//JArray parsedArray = ParseRuns(rawData);
 			for (int i = 0; i < rawData.Count; i++)
 			{
 				JObject arrayObject = rawData[i].ToObject<JObject>();
-
-				//int suite_id = Int32.Parse(arrayObject.Property("suite_id").Value.ToString());
-
-				//int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
-
-				//suiteIDs.Add(suite_id);
-				//runIDs.Add(run_id);
-
 
 				string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
 				csv.Append(newLine);
@@ -274,17 +306,9 @@ namespace TestRailResultExport
 			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Plan ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
 			//csv.Append(header);
 
-			//JArray parsedArray = ParseRuns(rawData);
 			for (int i = 0; i < rawData.Count; i++)
 			{
 				JObject arrayObject = rawData[i].ToObject<JObject>();
-
-				//int suite_id = Int32.Parse(arrayObject.Property("suite_id").Value.ToString());
-
-				//int run_id = Int32.Parse(arrayObject.Property("id").Value.ToString());
-
-				//suiteIDs.Add(suite_id);
-				//runIDs.Add(run_id);
 
 				string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("plan_id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
 				csv.Append(newLine);
