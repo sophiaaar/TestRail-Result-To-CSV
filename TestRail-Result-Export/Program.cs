@@ -18,8 +18,6 @@ namespace TestRailResultExport
 
         private static readonly IConfigReader _configReader = new ConfigReader();
 
-        //private static CsvBuilders _csvBuilder;
-
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -67,11 +65,6 @@ namespace TestRailResultExport
             return (JArray)client.SendGet("get_results/" + testID + "&limit=" + amountOfResultsToShow);
         }
 
-        //private static JArray Get5LatestResultsOfTest(APIClient client, string testID)
-        //{
-        //    return (JArray)client.SendGet("get_results/" + testID + "&limit=5");
-        //}
-
         private static void GetAllCases(APIClient client)
         {
             JArray suitesArray = GetSuitesInProject(client, "2");
@@ -112,10 +105,9 @@ namespace TestRailResultExport
 
         private static void GetAllTests(APIClient client)
         {
-            //APIClient client = ConnectToTestrail();
 			Console.WriteLine("Enter milestone ID: ");
 			milestoneID = Console.ReadLine();
-            //JArray c = (JArray)client.SendGet("get_runs/2&milestone_id=" + milestoneID);
+            
             JArray c = GetRunsForMilestone(client, milestoneID);
             JArray planArray = GetPlansForMilestone(client, milestoneID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
@@ -142,7 +134,6 @@ namespace TestRailResultExport
 
 			for (int i = 0; i < runIDs.Count; i++)
 			{
-                //JArray testsArray = (JArray)client.SendGet("get_tests/" + runIDs[i]);
                 JArray testsArray = GetTestsInRun(client, runIDs[i].ToString());
 
                 string suiteName = "";
@@ -166,7 +157,6 @@ namespace TestRailResultExport
 
 			for (int i = 0; i < runInPlanIds.Count; i++)
 			{
-                //JArray testsArray = (JArray)client.SendGet("get_tests/" + runInPlanIds[i]);
                 JArray testsArray = GetTestsInRun(client, runInPlanIds[i].ToString());
 
                 string suiteName = "";
@@ -183,7 +173,6 @@ namespace TestRailResultExport
 
 				string csvOfTests = CreateCSVOfTests(testsArray, suiteInPlanIDs[i], suiteName);
 				Console.WriteLine(csvOfTests);
-
 			}
 
 			Console.SetOut(oldOut);
@@ -200,12 +189,9 @@ namespace TestRailResultExport
             Console.WriteLine("Enter number of recent results to grab, eg 1: ");
             numberOfTestsToGet = Console.ReadLine();
 
-
-
             JArray c = GetRunsForMilestone(client, milestoneID);
             JArray planArray = GetPlansForMilestone(client, milestoneID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
-
 
             GetSuitesAndRuns(c);
 
@@ -268,7 +254,6 @@ namespace TestRailResultExport
 
                 string csvOfTestsWithMostRecentResult = CreateCSVOfTestsWithMostRecentResults(client, testsArray, suiteInPlanIDs[i], suiteName, numberOfTestsToGet);
                 Console.WriteLine(csvOfTestsWithMostRecentResult);
-
             }
 
             Console.SetOut(oldOut);
@@ -304,7 +289,6 @@ namespace TestRailResultExport
             {
                 return "Other";
             }
-
         }
 
         private static List<int> GetAllSuites(JArray arrayOfSuites)
@@ -319,14 +303,11 @@ namespace TestRailResultExport
             return listOfSuiteIds;
         }
 
-
         private static List<string> GetRunsInPlan(JArray planArray, APIClient client)
         {
             List<JArray> ListOfRunsInPlan = new List<JArray>();
             List<string> planIds = new List<string>();
             List<string> runInPlanIds = new List<string>();
-
-
 
             for (int i = 0; i < planArray.Count; i++)
             {
@@ -360,7 +341,6 @@ namespace TestRailResultExport
 
                                 if (!runInPlanIds.Contains(runInPlanId))
                                 {
-
                                     runInPlanIds.Add(runInPlanId);
                                     string suiteInPlanId = runObject.Property("suite_id").Value.ToString();
                                     suiteInPlanIDs.Add(Int32.Parse(suiteInPlanId));
@@ -442,7 +422,6 @@ namespace TestRailResultExport
 			StringBuilder csv = new StringBuilder();
 
 			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Plan ID", "Suite ID", "Title", "Is_Completed", "Passed_count", "Failed_count", "Blocked_count", "pending_count", "Untested_count", "Milestone ID", "url", "\n");
-			//csv.Append(header);
 
 			for (int i = 0; i < rawData.Count; i++)
 			{
@@ -502,33 +481,5 @@ namespace TestRailResultExport
 
             return csv.ToString();
         }
-
-        //public static string CreateCSVOfTestsWith5MostRecentResults(APIClient client, JArray arrayOfTests, int suiteId, string suiteName)
-        //{
-        //    StringBuilder csv = new StringBuilder();
-
-        //    string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Suite ID", "Suite Name", "Run ID", "Test ID", "Case ID", "Title", "Estimate", "Created on", "defects", "elapsed", "status", "comment", "\n");
-        //    csv.Append(header);
-
-        //    for (int i = 0; i < arrayOfTests.Count; i++)
-        //    {
-        //        JObject arrayObject = arrayOfTests[i].ToObject<JObject>();
-
-        //        string testID = arrayObject.Property("id").Value.ToString();
-
-        //        JArray resultsArray = GetLatestResultsOfTest(client, testID, "5");
-
-        //        for (int j = 0; j < resultsArray.Count; j++)
-        //        {
-        //            JObject resultsObject = resultsArray[j].ToObject<JObject>();
-        //            DateTime createdOnDate = Convert.ToDateTime(resultsObject.Property("created_on").Value.ToString());
-
-        //            string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", suiteId, suiteName, arrayObject.Property("run_id").Value, arrayObject.Property("id").Value, arrayObject.Property("case_id").Value, "\"" + arrayObject.Property("title").Value.ToString() + "\"", arrayObject.Property("estimate").Value, createdOnDate, "\"" + resultsObject.Property("defects") + "\"", resultsObject.Property("elapsed"), GetStatus(resultsObject.Property("status_id").Value.ToString()), resultsObject.Property("comment"), "\n");
-        //            csv.Append(newLine);
-        //        }
-        //    }
-
-        //    return csv.ToString();
-        //}
     }
 }
