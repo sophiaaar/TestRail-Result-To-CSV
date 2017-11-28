@@ -65,14 +65,38 @@ namespace TestRailResultExport
         {
             JArray suitesArray = GetSuitesInProject(client, "2");
 
+            FileStream ostrm;
+            StreamWriter writer;
+            TextWriter oldOut = Console.Out;
+
+            try
+            {
+                ostrm = new FileStream("Cases.csv", FileMode.OpenOrCreate, FileAccess.Write);
+                writer = new StreamWriter(ostrm);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Cannot open Cases.csv for writing");
+                Console.WriteLine(e.Message);
+                return;
+            }
+            Console.SetOut(writer);
+
             for (int i = 0; i < suitesArray.Count; i++)
             {
                 JObject arrayObject = suitesArray[i].ToObject<JObject>();
                 string id = arrayObject.Property("id").Value.ToString();
 
                 JArray casesArray = GetCasesInSuite(client, "2", id);
-                //TODO: finish this
+                
+                string casesCSV = CreateCsvOfCases(casesArray);
+                Console.WriteLine(casesCSV);
             }
+
+            Console.SetOut(oldOut);
+            writer.Close();
+            ostrm.Close();
+            Console.WriteLine("Done");
         }
 
         private static void GetAllTests(APIClient client)
@@ -88,14 +112,14 @@ namespace TestRailResultExport
 
             GetSuitesAndRuns(c);
 
-			FileStream ostrm2;
-			StreamWriter writer2;
-			TextWriter oldOut2 = Console.Out;
+			FileStream ostrm;
+			StreamWriter writer;
+			TextWriter oldOut = Console.Out;
 
 			try
 			{
-				ostrm2 = new FileStream("Tests.csv", FileMode.OpenOrCreate, FileAccess.Write);
-				writer2 = new StreamWriter(ostrm2);
+				ostrm = new FileStream("Tests.csv", FileMode.OpenOrCreate, FileAccess.Write);
+				writer = new StreamWriter(ostrm);
 			}
 			catch (Exception e)
 			{
@@ -103,7 +127,7 @@ namespace TestRailResultExport
 				Console.WriteLine(e.Message);
 				return;
 			}
-			Console.SetOut(writer2);
+			Console.SetOut(writer);
 
 			for (int i = 0; i < runIDs.Count; i++)
 			{
@@ -151,9 +175,9 @@ namespace TestRailResultExport
 
 			}
 
-			Console.SetOut(oldOut2);
-			writer2.Close();
-			ostrm2.Close();
+			Console.SetOut(oldOut);
+			writer.Close();
+			ostrm.Close();
 			Console.WriteLine("Done");
         }
 
@@ -281,7 +305,25 @@ namespace TestRailResultExport
 			}
         }
 
-		public static string CreateCSVOfRuns(JArray rawData, List<int> suiteIDs, List<int> runIDs)
+        private static string CreateCsvOfCases(JArray casesArray)
+        {
+            StringBuilder csv = new StringBuilder();
+
+            string header = string.Format("{0},{1},{2},{3},{4}", "Case ID", "Suite ID", "Title", "Milestone ID", "\n");
+            csv.Append(header);
+
+            for (int i = 0; i < casesArray.Count; i++)
+            {
+                JObject arrayObject = casesArray[i].ToObject<JObject>();
+
+                string newLine = string.Format("{0},{1},{2},{3},{4}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("title").Value, arrayObject.Property("milestone_id").Value, "\n");
+                csv.Append(newLine);
+            }
+
+            return csv.ToString();
+        }
+
+		public static string CreateCSVOfRuns(JArray rawData)
 		{
 			StringBuilder csv = new StringBuilder();
 
@@ -299,7 +341,7 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
-		public static string CreateCSVOfPlanRuns(JArray rawData, List<int> suiteIDs, List<int> runIDs)
+		public static string CreateCSVOfPlanRuns(JArray rawData)
 		{
 			StringBuilder csv = new StringBuilder();
 
@@ -313,8 +355,6 @@ namespace TestRailResultExport
 				string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", arrayObject.Property("plan_id").Value, arrayObject.Property("suite_id").Value, arrayObject.Property("name").Value, arrayObject.Property("is_completed").Value, arrayObject.Property("passed_count").Value, arrayObject.Property("failed_count").Value, arrayObject.Property("blocked_count").Value, arrayObject.Property("custom_status1_count").Value, arrayObject.Property("untested_count").Value, arrayObject.Property("milestone_id").Value, arrayObject.Property("url").Value, "\n");
 				csv.Append(newLine);
 			}
-
-
 
 			return csv.ToString();
 		}
