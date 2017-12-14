@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Data;
+using System.Threading;
 
 namespace TestRailResultExport
 {
@@ -15,7 +16,12 @@ namespace TestRailResultExport
 		public static string milestoneID = "";
 		public static List<string> suiteIDs = new List<string>();
 		public static List<string> runIDs = new List<string>();
-        public static List<int> allCaseIDs = new List<int>();
+        public static List<string> allCaseIDs = new List<string>();
+        public static List<string> caseIDsInMilestone = new List<string>(); //case IDs that have been run
+
+        public static int numberPassed;
+        public static int numberFailed;
+        public static int numberBlocked;
 
 		public static List<string> suiteInPlanIDs = new List<string>();
 
@@ -27,6 +33,7 @@ namespace TestRailResultExport
 		{
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
+            //GoogleSheets.ConnectToGoogleSheets();
 
             EvaluateChoice(client);
 		}
@@ -39,6 +46,10 @@ namespace TestRailResultExport
 			return client;
 		}
 
+        /// <summary>
+        /// Asks the user which kind of action they'd like to perform, then calls the appropriate method
+        /// </summary>
+        /// <param name="client">Client.</param>
         private static void EvaluateChoice(APIClient client)
         {
             Console.WriteLine("To create a CSV of all cases, press 1,");
@@ -59,7 +70,18 @@ namespace TestRailResultExport
             {
                 Console.WriteLine("How many previous results do you want to see?");
                 int previousResults = Int32.Parse(Console.ReadLine());
-                GetAllTests(client, previousResults);
+
+                Console.WriteLine("Simple view? Y or N");
+                string simple = Console.ReadLine();
+
+                if (simple == "Y" || simple == "y")
+                {
+                    GetAllTests(client, previousResults, true);
+                }
+                else
+                {
+                    GetAllTests(client, previousResults, false);
+                }
             }
             else
             {
@@ -103,6 +125,10 @@ namespace TestRailResultExport
           return (JArray)client.SendGet("get_results_for_case/" + runID + "/"+ caseID + "&limit=" + amountOfResultsToShow);
         }
 
+        /// <summary>
+        /// Retrieves TestRail cases using the API and puts them into a JArray so a CSV can be made
+        /// </summary>
+        /// <param name="client">Client.</param>
 		private static void GetAllCases(APIClient client)
 		{
 			JArray suitesArray = GetSuitesInProject(client, "2");
@@ -129,6 +155,8 @@ namespace TestRailResultExport
 				JObject arrayObject = suitesArray[i].ToObject<JObject>();
 				string id = arrayObject.Property("id").Value.ToString();
 
+                allCaseIDs.Add(id);
+
 				JArray casesArray = GetCasesInSuite(client, "2", id);
 
 				string casesCSV = CreateCsvOfCases(casesArray);
@@ -142,8 +170,12 @@ namespace TestRailResultExport
 		}
 
 
-
-		private static void GetAllTests(APIClient client, int previousResults)
+        /// <summary>
+        /// Retrieves TestRail tests (both in and out of plans)
+        /// </summary>
+        /// <param name="client">Client.</param>
+        /// <param name="previousResults">Number of previous results to include.</param>
+		private static void GetAllTests(APIClient client, int previousResults, bool simple)
 		{
 			Console.WriteLine("Enter milestone ID: ");
 			milestoneID = Console.ReadLine();
@@ -172,12 +204,12 @@ namespace TestRailResultExport
 			}
 			Console.SetOut(writer);
 
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Suite ID", "Suite Name", "Run ID", "Test ID", "CaseID", "Title", "Status", "\n");
-			Console.WriteLine(header);
+			//string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Suite ID", "Suite Name", "Run ID", "Test ID", "CaseID", "Title", "Status", "\n");
+			//Console.WriteLine(header);
 
 			for (int i = 0; i < runIDs.Count; i++)
 			{
-				JArray testsArray = GetTestsInRun(client, runIDs[i].ToString());
+				JArray testsArray = GetTestsInRun(client, runIDs[i]);
 
                 string testID = "";
                 int caseID = 0;
@@ -188,20 +220,39 @@ namespace TestRailResultExport
                 {
                     JObject testObject = testsArray[j].ToObject<JObject>();
                     testID = testObject.Property("id").Value.ToString();
+
                     if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
                     {
                         caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
                     }
+
+                    caseIDsInMilestone.Add(caseID.ToString());
+
                     title = testObject.Property("title").Value.ToString();
                     status = GetStatus(testObject.Property("status_id").Value.ToString());
 
-                    allCaseIDs.Add(caseID);
+                    if (status == "Passed")
+                    {
+                        numberPassed++;
+                    }
+                    else if (status == "Failed")
+                    {
+                        numberFailed++;
+                    }
+                    else if (status == "Blocked")
+                    {
+                        numberBlocked++;
+                    }
+
+                    //allCaseIDs.Add(caseID);
 
 					string suiteName = "";
 
+                    // Some suites have been deleted, but the tests and runs remain
 					if (suiteIDs[i] != "0")
 					{
-						JObject suite = (JObject)client.SendGet($"get_suite/{suiteIDs[i]}");
+                        // Get the suite_id that corresponds to the run_id
+                        JObject suite = (JObject)client.SendGet($"get_suite/{suiteIDs[i]}");
 						suiteName = suite.Property("name").Value.ToString();
 					}
 					else
@@ -213,18 +264,13 @@ namespace TestRailResultExport
 					listOfTests.Add(currentTest);
                 }
 
-
-
-				//string csvOfTests = CreateCSVOfTests();
-				//Console.WriteLine(csvOfTests);
-
 			}
 
 			List<string> runInPlanIds = GetRunsInPlan(planArray, client);
 
 			for (int i = 0; i < runInPlanIds.Count; i++)
 			{
-				JArray testsArray = GetTestsInRun(client, runInPlanIds[i].ToString());
+				JArray testsArray = GetTestsInRun(client, runInPlanIds[i]);
 
 				string testID = "";
 				int caseID = 0;
@@ -236,17 +282,34 @@ namespace TestRailResultExport
 					JObject testObject = testsArray[j].ToObject<JObject>();
 
                     testID = testObject.Property("id").Value.ToString();
+
                     if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
                     {
                         caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
                     }
+                    caseIDsInMilestone.Add(caseID.ToString());
+
 					title = testObject.Property("title").Value.ToString();
 					status = GetStatus(testObject.Property("status_id").Value.ToString());
 
-					allCaseIDs.Add(caseID);
+					if (status == "Passed")
+					{
+						numberPassed++;
+					}
+					else if (status == "Failed")
+					{
+						numberFailed++;
+					}
+					else if (status == "Blocked")
+					{
+						numberBlocked++;
+					}
+
+					//allCaseIDs.Add(caseID);
 
 					string suiteName = "";
 
+					// Some suites have been deleted, but the tests and runs remain
 					if (suiteInPlanIDs[i] != "0")
 					{
 						JObject suite = (JObject)client.SendGet($"get_suite/{suiteInPlanIDs[i]}");
@@ -263,8 +326,22 @@ namespace TestRailResultExport
 
 			}
             List<Test> sortedList = SortListOfTests();
-            string csvOfTests = CreateCSVOfTests(sortedList, previousResults);
-            Console.WriteLine(csvOfTests);
+
+            Console.WriteLine("Number Passed, Number Failed, Number Blocked,\n");
+            Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
+
+            if (simple == true)
+            {
+                string csvOfTests = CreateCSVOfTestsSimpleView(sortedList, previousResults);
+				Console.WriteLine(csvOfTests);
+            }
+            else
+            {
+                string csvOfTests = CreateCSVOfTests(sortedList, previousResults);
+                Console.WriteLine(csvOfTests);
+            }
+
+            //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults);
 
 
 			Console.SetOut(oldOut);
@@ -273,6 +350,12 @@ namespace TestRailResultExport
 			Console.WriteLine("Done");
 		}
 
+
+
+        /// <summary>
+        /// Retrieves all tests but doesn't order them
+        /// </summary>
+        /// <param name="client">APIClient.</param>
 		private static void GetAllTestsFast(APIClient client)
 		{
 			Console.WriteLine("Enter milestone ID: ");
@@ -280,8 +363,6 @@ namespace TestRailResultExport
 
 			JArray c = GetRunsForMilestone(client, milestoneID);
 			JArray planArray = GetPlansForMilestone(client, milestoneID);
-			//The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
-
 
 			GetSuitesAndRuns(c);
 
@@ -304,7 +385,7 @@ namespace TestRailResultExport
 
 			for (int i = 0; i < runIDs.Count; i++)
 			{
-				JArray testsArray = GetTestsInRun(client, runIDs[i].ToString());
+				JArray testsArray = GetTestsInRun(client, runIDs[i]);
 
 				string suiteName = "";
 
@@ -327,7 +408,7 @@ namespace TestRailResultExport
 
 			for (int i = 0; i < runInPlanIds.Count; i++)
 			{
-				JArray testsArray = GetTestsInRun(client, runInPlanIds[i].ToString());
+				JArray testsArray = GetTestsInRun(client, runInPlanIds[i]);
 
 				string suiteName = "";
 
@@ -351,6 +432,11 @@ namespace TestRailResultExport
 			Console.WriteLine("Done");
 		}
 
+        /// <summary>
+        /// Converts the status number to a string
+        /// </summary>
+        /// <returns>The status.</returns>
+        /// <param name="rawValue">Raw value.</param>
 		private static string GetStatus(string rawValue)
 		{
 			if (rawValue == "1")
@@ -561,16 +647,17 @@ namespace TestRailResultExport
         public static string CreateCSVOfTests(List<Test> sortedList, int previousResults)
 		{
 			StringBuilder csv = new StringBuilder();
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Suite ID", "Suite Name", "Run ID", "Test ID", "CaseID", "Title", "Status", "\n");
+            csv.Append(header);
             int count = 0;
 			for (int i = 0; i < sortedList.Count; i++)
 			{
-                //TODO: Perform this loop only a set amount of times for each i (to allow up to 5 results be listed on each line)
 				Test arrayObject = sortedList[i];
                 if (i != 0)
                 {
                     if (arrayObject.CaseID != 0)
                     {
-                         //keepng track of the amount of results on each row
+                         // check if the case_id is the same as the one above it
                         if (arrayObject.CaseID == sortedList[i - 1].CaseID)
                         {
 							count++;
@@ -581,10 +668,6 @@ namespace TestRailResultExport
                             }
                             else
                             {
-                                //break?
-                                //count = 0;
-                                //csv.Append("\n");
-                                //;
                             }
                         }
                         else
@@ -597,6 +680,47 @@ namespace TestRailResultExport
                         }
                     }
                 }
+			}
+
+			return csv.ToString();
+		}
+
+		public static string CreateCSVOfTestsSimpleView(List<Test> sortedList, int previousResults)
+		{
+			StringBuilder csv = new StringBuilder();
+			string header = string.Format("{0},{1},{2},{3},{4},", "Suite Name", "Title", "Last Run Result", "Previous Result", "\n");
+			csv.Append(header);
+			int count = 0;
+			for (int i = 0; i < sortedList.Count; i++)
+			{
+				Test arrayObject = sortedList[i];
+				if (i != 0)
+				{
+					if (arrayObject.CaseID != 0)
+					{
+						// check if the case_id is the same as the one above it
+						if (arrayObject.CaseID == sortedList[i - 1].CaseID)
+						{
+							count++;
+							if (count < previousResults)
+							{
+								string line = string.Format("{0},", arrayObject.Status);
+								csv.Append(line);
+							}
+							else
+							{
+							}
+						}
+						else
+						{
+							count = 0;
+							csv.Append("\n");
+							string line = string.Format("{0},{1},{2},", arrayObject.SuiteName, "\"" + arrayObject.Title + "\"", arrayObject.Status);
+							csv.Append(line);
+
+						}
+					}
+				}
 			}
 
 			return csv.ToString();
@@ -619,6 +743,22 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
+        public static string CheckIfCaseHasBeenRunInMilestone(string currentCaseID)
+        {
+            if (caseIDsInMilestone.Contains(currentCaseID))
+            {
+                return "Run";
+            }
+            else
+            {
+                return "Not run";
+            }
+        }
+
+        /// <summary>
+        /// Sorts the list of tests by case_id and then run_id
+        /// </summary>
+        /// <returns>The list of tests.</returns>
         private static List<Test> SortListOfTests()
         {
             List<Test> sortedList = listOfTests.OrderBy(o => o.CaseID).ThenByDescending(o=>o.RunID).ToList();
