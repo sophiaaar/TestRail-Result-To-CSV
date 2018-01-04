@@ -15,6 +15,7 @@ namespace TestRailResultExport
 	{
 		public static string milestoneID = "";
 		public static List<string> suiteIDs = new List<string>();
+        public static List<string> suiteInPlanIDs = new List<string>();
 		public static List<string> runIDs = new List<string>();
         public static List<string> allCaseIDs = new List<string>();
         public static List<string> caseIDsInMilestone = new List<string>(); //case IDs that have been run
@@ -23,10 +24,8 @@ namespace TestRailResultExport
         public static int numberFailed;
         public static int numberBlocked;
 
-		public static List<string> suiteInPlanIDs = new List<string>();
-
-        public static List<Test> listOfTests = new List<Test>();
-        public static List<Case> listOfCases = new List<Case>();
+        //public static List<Test> listOfTests = new List<Test>();
+        //public static List<Case> listOfCases = new List<Case>();
 
 		private static readonly IConfigReader _configReader = new ConfigReader();
 
@@ -156,6 +155,8 @@ namespace TestRailResultExport
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
 			//The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
+            List<Test> listOfTests = new List<Test>();
+            List<Case> listOfCases = new List<Case>();
 
             AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs);
 
@@ -175,9 +176,6 @@ namespace TestRailResultExport
 				return;
 			}
 			Console.SetOut(writer);
-
-			//string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Suite ID", "Suite Name", "Run ID", "Test ID", "CaseID", "Title", "Status", "\n");
-			//Console.WriteLine(header);
 
 			for (int i = 0; i < runIDs.Count; i++)
 			{
@@ -300,14 +298,14 @@ namespace TestRailResultExport
 				}
 
 			}
-            List<Test> sortedList = SortListOfTests();
+            List<Test> sortedList = SortListOfTests(listOfTests);
 
             Console.WriteLine("Number Passed, Number Failed, Number Blocked,\n");
             Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
 
             if (simple == true)
             {
-                string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults);
+                string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
 				Console.WriteLine(csvOfTests);
             }
             else
@@ -411,6 +409,8 @@ namespace TestRailResultExport
 		{
 			StringBuilder csv = new StringBuilder();
 
+            List<Case> listOfCases = new List<Case>();
+
             string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
 			csv.Append(header);
 
@@ -442,7 +442,7 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
-        public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults)
+        public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
             string header = string.Format("{0},{1},{2},{3},{4},{5},", "Suite Name", "Title", "Last Run Result", "Previous Result", "Pass Rate", "\n");
@@ -451,22 +451,21 @@ namespace TestRailResultExport
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
             {
-                Test arrayObject = sortedList[i];
+                Test testObject = sortedList[i];
                 if (i != 0)
                 {
-                    if (arrayObject.CaseID != 0)
+                    if (testObject.CaseID != 0)
                     {
-                        
 						// check if the case_id is the same as the one above it
-						if (arrayObject.CaseID == sortedList[i - 1].CaseID)
+						if (testObject.CaseID == sortedList[i - 1].CaseID)
 						{
 							count++;
 							if (count < previousResults)
 							{
                                 string passRate = "";
-								string line = string.Format("{0},", arrayObject.Status);
+								string line = string.Format("{0},", testObject.Status);
                                 // 2) add the status to the same list
-                                if (arrayObject.Status == "Passed")
+                                if (testObject.Status == "Passed")
                                 {
                                     passValues.Add(100);
                                 }
@@ -484,22 +483,18 @@ namespace TestRailResultExport
                                     passRate = (sumOfValues / previousResults).ToString();
                                     csv.Append(string.Format("{0},", passRate + "%"));
                                 }
-								
-
-							}
-							else
-							{
 							}
 						}
 						else
 						{
+                            // Some values get reset here because this is a brand new line and a new case
                             passValues.Clear();
 							count = 0;
 							csv.Append("\n");
-							string line = string.Format("{0},{1},{2},", arrayObject.SuiteName, "\"" + arrayObject.Title + "\"", arrayObject.Status);
+							string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", testObject.Status);
                             // 1) add the status to a list?
                             // if its a pass, value is 100
-                            if (arrayObject.Status == "Passed")
+                            if (testObject.Status == "Passed")
                             {
                                 passValues.Add(100);
                             }
@@ -519,7 +514,7 @@ namespace TestRailResultExport
             {
                 if (!caseIDsInMilestone.Contains(allCaseIDs[k]))
                 {
-                    List<Case> sortedListOfCases = SortListOfCases();
+                    List<Case> sortedListOfCases = SortListOfCases(listOfCases);
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
@@ -589,29 +584,16 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
-        //public static string CheckIfCaseHasBeenRunInMilestone(string currentCaseID)
-        //{
-        //    if (caseIDsInMilestone.Contains(currentCaseID))
-        //    {
-        //        return "Run";
-        //    }
-        //    else
-        //    {
-        //        return "Not run";
-        //    }
-        //}
-
         /// <summary>
         /// Sorts the list of tests by case_id and then run_id
         /// </summary>
-        /// <returns>The list of tests.</returns>
-        private static List<Test> SortListOfTests()
+        private static List<Test> SortListOfTests(List<Test> listOfTests)
         {
             List<Test> sortedList = listOfTests.OrderBy(o => o.CaseID).ThenByDescending(o=>o.RunID).ToList();
             return sortedList;
         }
 
-        private static List<Case> SortListOfCases()
+        private static List<Case> SortListOfCases(List<Case> listOfCases)
         {
             List<Case> sortedList = listOfCases.OrderBy(o => o.CaseID).ToList();
             return sortedList;
