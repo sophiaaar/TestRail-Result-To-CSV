@@ -75,7 +75,7 @@ namespace TestRailResultExport
 
                 if (simple == "Y" || simple == "y")
                 {
-                    GetAllCases(client, false);
+                    //GetAllCases(client, false);
                     GetAllTests(client, previousResults, true);
                 }
                 else
@@ -153,13 +153,26 @@ namespace TestRailResultExport
 
             JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
-			//The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
-
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
-
+            //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
+            List<Case> listOfCases = new List<Case>();
             List<Test> listOfTests = new List<Test>();
 
-            List<Case> listOfCases = new List<Case>();
+            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
+            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
+
+
+            for (int i = 0; i < suitesArray.Count; i++)
+            {
+                JObject arrayObject = suitesArray[i].ToObject<JObject>();
+                string id = arrayObject.Property("id").Value.ToString();
+
+                JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
+                listOfCases = CreateListOfCases(client, casesArray, listOfCases);
+            }
+
+
+
+
 
             AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs);
 
@@ -238,7 +251,7 @@ namespace TestRailResultExport
 						suiteName = "deleted";
 					}
 
-					Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status);
+					Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status, "defects"); //TODO
                     //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
                 }
@@ -299,7 +312,7 @@ namespace TestRailResultExport
 						suiteName = "deleted";
 					}
 
-					Test currentTest = new Test(suiteInPlanIDs[i], suiteName, runInPlanIds[i], testID, caseID, title, status);
+                    Test currentTest = new Test(suiteInPlanIDs[i], suiteName, runInPlanIds[i], testID, caseID, title, status, "defects"); //TODO
 					listOfTests.Add(currentTest);
 				}
 
@@ -437,7 +450,7 @@ namespace TestRailResultExport
                     string suiteID = arrayObject.Property("suite_id").Value.ToString();
                     string caseName = arrayObject.Property("title").Value.ToString();
 
-                    Case newCase = new Case(suiteID, suiteName, caseID, caseName);
+                    Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
                     listOfCases.Add(newCase);
                 }
 
@@ -447,6 +460,29 @@ namespace TestRailResultExport
 
 			return csv.ToString();
 		}
+
+        public static List<Case> CreateListOfCases(APIClient client, JArray casesArray, List<Case> listOfCases)
+        {
+            //List<Case> listOfCases = new List<Case>();
+
+            for (int i = 0; i < casesArray.Count; i++)
+            {
+                JObject arrayObject = casesArray[i].ToObject<JObject>();
+
+                allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
+
+                JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString());
+
+                string suiteName = suite.Property("name").Value.ToString();
+                string caseID = arrayObject.Property("id").Value.ToString();
+                string suiteID = arrayObject.Property("suite_id").Value.ToString();
+                string caseName = arrayObject.Property("title").Value.ToString();
+
+                Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
+                listOfCases.Add(newCase);
+            }
+            return listOfCases;
+        }
 
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
@@ -617,8 +653,9 @@ public class Test
     public int CaseID;
     public string Title;
     public string Status;
+    public string Defects;
 
-    public Test(string suiteID, string suiteName, string runID, string testID, int caseID, string title, string status)
+    public Test(string suiteID, string suiteName, string runID, string testID, int caseID, string title, string status, string defects)
     {
         SuiteID = suiteID;
         SuiteName = suiteName;
@@ -627,6 +664,7 @@ public class Test
         CaseID = caseID;
         Title = title;
         Status = status;
+        Defects = defects;
     }
 }
 
@@ -636,12 +674,14 @@ public class Case
     public string SuiteName;
     public string CaseID;
     public string CaseName;
+    public string Status;
 
-    public Case(string suiteID, string suiteName, string caseID, string caseName)
+    public Case(string suiteID, string suiteName, string caseID, string caseName, string status)
     {
         SuiteID = suiteID;
         SuiteName = suiteName;
         CaseID = caseID;
         CaseName = caseName;
+        Status = status;
     }
 }
