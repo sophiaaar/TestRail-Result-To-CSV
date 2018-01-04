@@ -532,7 +532,10 @@ namespace TestRailResultExport
                             // Some values get reset here because this is a brand new line and a new case
                             passValues.Clear();
 							count = 0;
-                            csv.Append("\n"); //TODO: Remove the first instance of this
+                            if (i != 0)
+                            {
+                                csv.Append("\n"); //removes te blank row between the headings and the first result
+                            }
 							string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", testObject.Status);
                             // 1) add the status to a list?
                             // if its a pass, value is 100
