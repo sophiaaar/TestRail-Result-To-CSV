@@ -79,6 +79,8 @@
     <Compile Include="Configuration\ConfigReader.cs" />
     <Compile Include="Configuration\IConfigReader.cs" />
     <Compile Include="GoogleSheets.cs" />
+    <Compile Include="AccessTestRail.cs" />
+    <Compile Include="StringManipulation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dotnet\Gurock.TestRail.csproj" />
