@@ -3,6 +3,7 @@ using Gurock.TestRail;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace TestRailResultExport
 {
@@ -51,6 +52,97 @@ namespace TestRailResultExport
         public static JObject GetSuite(APIClient client, string suiteID)
         {
             return (JObject)client.SendGet($"get_suite/" + suiteID);
+        }
+
+
+        private static List<int> GetAllSuites(JArray arrayOfSuites)
+        {
+            List<int> listOfSuiteIds = new List<int>();
+            for (int i = 0; i < arrayOfSuites.Count; i++)
+            {
+                JObject arrayObject = arrayOfSuites[i].ToObject<JObject>();
+                int id = Int32.Parse(arrayObject.Property("id").Value.ToString());
+                listOfSuiteIds.Add(id);
+            }
+            return listOfSuiteIds;
+        }
+
+        private static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs)
+        {
+            List<JArray> ListOfRunsInPlan = new List<JArray>();
+            List<string> planIds = new List<string>();
+            List<string> runInPlanIds = new List<string>();
+
+            for (int i = 0; i < planArray.Count; i++)
+            {
+                JObject arrayObject = planArray[i].ToObject<JObject>();
+
+                string planID = arrayObject.Property("id").Value.ToString();
+                planIds.Add(planID);
+
+                foreach (string id in planIds)
+                {
+                    JObject singularPlanObject = (JObject)client.SendGet("get_plan/" + id);
+
+                    JProperty prop = singularPlanObject.Property("entries");
+                    if (prop != null && prop.Value != null)
+                    {
+                        JArray entries = (JArray)singularPlanObject.Property("entries").First;
+
+                        for (int k = 0; k < entries.Count; k++)
+                        {
+                            JObject entriesObject = entries[k].ToObject<JObject>();
+
+
+                            JArray runsArray = (JArray)entriesObject.Property("runs").First;
+
+                            for (int j = 0; j < runsArray.Count; j++)
+                            {
+                                JObject runObject = runsArray[j].ToObject<JObject>();
+
+
+                                string runInPlanId = runObject.Property("id").Value.ToString();
+
+                                if (!runInPlanIds.Contains(runInPlanId))
+                                {
+                                    runInPlanIds.Add(runInPlanId);
+                                    string suiteInPlanId = runObject.Property("suite_id").Value.ToString();
+                                    suiteInPlanIDs.Add(suiteInPlanId);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return runInPlanIds;
+        }
+
+        public static void GetSuitesAndRuns(JArray runsArr, List<string> suiteIDs, List<string> runIDs)
+        {
+            for (int i = 0; i < runsArr.Count; i++)
+            {
+                JObject arrayObject = runsArr[i].ToObject<JObject>();
+
+                JProperty prop = arrayObject.Property("suite_id");
+                if (prop != null && prop.Value != null && !string.IsNullOrEmpty(prop.Value.ToString()))
+                {
+                    string suite_id = arrayObject.Property("suite_id").Value.ToString();
+
+                    string run_id = arrayObject.Property("id").Value.ToString();
+
+                    suiteIDs.Add(suite_id);
+                    runIDs.Add(run_id);
+                }
+                else
+                {
+                    string suite_id = "0";
+
+                    string run_id = arrayObject.Property("id").Value.ToString();
+
+                    suiteIDs.Add(suite_id);
+                    runIDs.Add(run_id);
+                }
+            }
         }
     }
 }
