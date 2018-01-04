@@ -55,7 +55,7 @@ namespace TestRailResultExport
         }
 
 
-        private static List<int> GetAllSuites(JArray arrayOfSuites)
+        public static List<int> GetAllSuites(JArray arrayOfSuites)
         {
             List<int> listOfSuiteIds = new List<int>();
             for (int i = 0; i < arrayOfSuites.Count; i++)
@@ -67,7 +67,7 @@ namespace TestRailResultExport
             return listOfSuiteIds;
         }
 
-        private static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs)
+        public static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs)
         {
             List<JArray> ListOfRunsInPlan = new List<JArray>();
             List<string> planIds = new List<string>();

@@ -155,7 +155,10 @@ namespace TestRailResultExport
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
 			//The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
+            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
+
             List<Test> listOfTests = new List<Test>();
+
             List<Case> listOfCases = new List<Case>();
 
             AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs);
@@ -166,7 +169,7 @@ namespace TestRailResultExport
 
 			try
 			{
-                ostrm = new FileStream("Tests"+ DateTime.UtcNow.ToFileTimeUtc().ToString() +".csv", FileMode.OpenOrCreate, FileAccess.Write);
+                ostrm = new FileStream("Tests"+ DateTime.UtcNow.ToLongDateString() +".csv", FileMode.OpenOrCreate, FileAccess.Write);
 				writer = new StreamWriter(ostrm);
 			}
 			catch (Exception e)
@@ -185,6 +188,8 @@ namespace TestRailResultExport
                 int caseID = 0;
                 string title = "";
                 string status = "";
+
+                //Test[] arrayOfTests = new Test[testsArray.Count];
 
                 for (int j = 0; j < testsArray.Count; j++)
                 {
@@ -234,12 +239,13 @@ namespace TestRailResultExport
 					}
 
 					Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status);
+                    //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
                 }
 
 			}
 
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
+            //List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
 
 			for (int i = 0; i < runInPlanIds.Count; i++)
 			{
@@ -490,7 +496,7 @@ namespace TestRailResultExport
                             // Some values get reset here because this is a brand new line and a new case
                             passValues.Clear();
 							count = 0;
-							csv.Append("\n");
+                            csv.Append("\n"); //TODO: Remove the first instance of this
 							string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", testObject.Status);
                             // 1) add the status to a list?
                             // if its a pass, value is 100
@@ -509,6 +515,7 @@ namespace TestRailResultExport
 				}
 			}
             csv.Append("\n");
+            csv.Append("\n");
 
             for (int k = 0; k < allCaseIDs.Count; k++)
             {
@@ -518,7 +525,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Has not been run", "\n");
+                    string line = string.Format("{0},{1},{2},{3}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Has not been run", "\n");
                     csv.Append(line);
                 }
             }
