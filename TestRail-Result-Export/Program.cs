@@ -88,7 +88,7 @@ namespace TestRailResultExport
                 //JArray test = AccessTestRail.GetStatuses(client);
                 GetAllCases(client, true);
             }
-            else if (selection == "3")
+            else if (selection == "2")
             {
                 Console.WriteLine("How many previous results do you want to see?");
                 int previousResults = Int32.Parse(Console.ReadLine());
@@ -351,7 +351,7 @@ namespace TestRailResultExport
 					// Some suites have been deleted, but the tests and runs remain
 					if (suiteInPlanIDs[i] != "0")
 					{
-                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteIDs[i]);
+                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteInPlanIDs[i]);
                         suiteName = currentSuite.SuiteName;
 					}
 					else
