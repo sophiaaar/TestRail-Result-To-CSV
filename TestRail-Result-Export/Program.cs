@@ -29,6 +29,27 @@ namespace TestRailResultExport
 
 		private static readonly IConfigReader _configReader = new ConfigReader();
 
+        public struct Test
+        {
+            public string SuiteID;
+            public string SuiteName;
+            public string RunID;
+            public string TestID;
+            public int CaseID;
+            public string Title;
+            public string Status;
+            public string Defects;
+        }
+
+        public struct Case
+        {
+            public string SuiteID;
+            public string SuiteName;
+            public string CaseID;
+            public string CaseName;
+            public string Status;
+        }
+
 		public static void Main(string[] args)
 		{
 			Console.WriteLine("Hello World!");
@@ -251,7 +272,18 @@ namespace TestRailResultExport
 						suiteName = "deleted";
 					}
 
-					Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status, "defects"); //TODO
+                    //append to csv at this point?
+                    //Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status, "defects"); //TODO
+                    Test currentTest;
+                    currentTest.SuiteID = suiteIDs[i];
+                    currentTest.SuiteName = suiteName;
+                    currentTest.RunID = runIDs[i];
+                    currentTest.TestID = testID;
+                    currentTest.CaseID = caseID;
+                    currentTest.Title = title;
+                    currentTest.Status = status;
+                    currentTest.Defects = "defects";
+
                     //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
                 }
@@ -312,7 +344,18 @@ namespace TestRailResultExport
 						suiteName = "deleted";
 					}
 
-                    Test currentTest = new Test(suiteInPlanIDs[i], suiteName, runInPlanIds[i], testID, caseID, title, status, "defects"); //TODO
+                    //Test currentTest = new Test(suiteInPlanIDs[i], suiteName, runInPlanIds[i], testID, caseID, title, status, "defects"); //TODO
+                    Test currentTest;
+                    currentTest.SuiteID = suiteInPlanIDs[i];
+                    currentTest.SuiteName = suiteName;
+                    currentTest.RunID = runInPlanIds[i];
+                    currentTest.TestID = testID;
+                    currentTest.CaseID = caseID;
+                    currentTest.Title = title;
+                    currentTest.Status = status;
+                    currentTest.Defects = "defects";
+
+
 					listOfTests.Add(currentTest);
 				}
 
@@ -450,7 +493,15 @@ namespace TestRailResultExport
                     string suiteID = arrayObject.Property("suite_id").Value.ToString();
                     string caseName = arrayObject.Property("title").Value.ToString();
 
-                    Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
+                    //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
+                    Case newCase;
+                    newCase.SuiteID = suiteID;
+                    newCase.SuiteName = suiteName;
+                    newCase.CaseID = caseID;
+                    newCase.CaseName = caseName;
+                    newCase.Status = StringManipulation.IsInvalid(arrayObject);
+
+
                     listOfCases.Add(newCase);
                 }
 
@@ -478,7 +529,15 @@ namespace TestRailResultExport
                 string suiteID = arrayObject.Property("suite_id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
 
-                Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
+                //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
+                Case newCase;
+                newCase.SuiteID = suiteID;
+                newCase.SuiteName = suiteName;
+                newCase.CaseID = caseID;
+                newCase.CaseName = caseName;
+                newCase.Status = StringManipulation.IsInvalid(arrayObject);
+
+
                 listOfCases.Add(newCase);
             }
             return listOfCases;
@@ -647,44 +706,44 @@ namespace TestRailResultExport
 	}
 }
 
-public class Test
-{
-    public string SuiteID;
-    public string SuiteName;
-    public string RunID;
-    public string TestID;
-    public int CaseID;
-    public string Title;
-    public string Status;
-    public string Defects;
+//public class Test
+//{
+//    public string SuiteID;
+//    public string SuiteName;
+//    public string RunID;
+//    public string TestID;
+//    public int CaseID;
+//    public string Title;
+//    public string Status;
+//    public string Defects;
 
-    public Test(string suiteID, string suiteName, string runID, string testID, int caseID, string title, string status, string defects)
-    {
-        SuiteID = suiteID;
-        SuiteName = suiteName;
-        RunID = runID;
-        TestID = testID;
-        CaseID = caseID;
-        Title = title;
-        Status = status;
-        Defects = defects;
-    }
-}
+//    public Test(string suiteID, string suiteName, string runID, string testID, int caseID, string title, string status, string defects)
+//    {
+//        SuiteID = suiteID;
+//        SuiteName = suiteName;
+//        RunID = runID;
+//        TestID = testID;
+//        CaseID = caseID;
+//        Title = title;
+//        Status = status;
+//        Defects = defects;
+//    }
+//}
 
-public class Case
-{
-    public string SuiteID;
-    public string SuiteName;
-    public string CaseID;
-    public string CaseName;
-    public string Status;
+//public class Case
+//{
+//    public string SuiteID;
+//    public string SuiteName;
+//    public string CaseID;
+//    public string CaseName;
+//    public string Status;
 
-    public Case(string suiteID, string suiteName, string caseID, string caseName, string status)
-    {
-        SuiteID = suiteID;
-        SuiteName = suiteName;
-        CaseID = caseID;
-        CaseName = caseName;
-        Status = status;
-    }
-}
+//    public Case(string suiteID, string suiteName, string caseID, string caseName, string status)
+//    {
+//        SuiteID = suiteID;
+//        SuiteName = suiteName;
+//        CaseID = caseID;
+//        CaseName = caseName;
+//        Status = status;
+//    }
+//}
