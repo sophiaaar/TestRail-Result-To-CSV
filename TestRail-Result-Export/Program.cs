@@ -50,6 +50,12 @@ namespace TestRailResultExport
             public string Type;
         }
 
+        public struct Suite
+        {
+            public string SuiteID;
+            public string SuiteName;
+        }
+
 		public static void Main(string[] args)
 		{
 			Console.WriteLine("Hello World!");
@@ -180,18 +186,26 @@ namespace TestRailResultExport
             JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
+
+            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
+
             List<Case> listOfCases = new List<Case>();
             List<Test> listOfTests = new List<Test>();
 
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
-            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
+            List<Suite> listOfSuites = new List<Suite>();
 
+            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
 
             for (int i = 0; i < suitesArray.Count; i++)
             {
                 JObject arrayObject = suitesArray[i].ToObject<JObject>();
                 string id = arrayObject.Property("id").Value.ToString();
                 string suiteName = arrayObject.Property("name").Value.ToString(); //create list of suiteNames to use later
+
+                Suite newSuite;
+                newSuite.SuiteID = id;
+                newSuite.SuiteName = suiteName;
+                listOfSuites.Add(newSuite);
 
 
                 JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
@@ -267,9 +281,11 @@ namespace TestRailResultExport
                     // Some suites have been deleted, but the tests and runs remain
 					if (suiteIDs[i] != "0")
 					{
+                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteIDs[i]);
                         // Get the suite_id that corresponds to the run_id
-                        JObject suite = AccessTestRail.GetSuite(client, suiteIDs[i]);
-						suiteName = suite.Property("name").Value.ToString();
+                        //JObject suite = AccessTestRail.GetSuite(client, suiteIDs[i]);
+                        //suiteName = suite.Property("name").Value.ToString();
+                        suiteName = currentSuite.SuiteName;
 					}
 					else
 					{
@@ -355,8 +371,8 @@ namespace TestRailResultExport
 					// Some suites have been deleted, but the tests and runs remain
 					if (suiteInPlanIDs[i] != "0")
 					{
-                        JObject suite = AccessTestRail.GetSuite(client, suiteInPlanIDs[i]);
-						suiteName = suite.Property("name").Value.ToString();
+                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteIDs[i]);
+                        suiteName = currentSuite.SuiteName;
 					}
 					else
 					{
