@@ -63,7 +63,7 @@ namespace TestRailResultExport
 			string spreadsheetURL = response.SpreadsheetUrl;         
         }
 
-		public static void OutputTestsToGoogleSheets(List<Test> sortedList, int previousResults)
+		public static void OutputTestsToGoogleSheets(List<MainClass.Test> sortedList, int previousResults)
 		{
             SheetsService service = ConnectToGoogleSheets();
 			// The new values to apply to the spreadsheet.
@@ -80,7 +80,7 @@ namespace TestRailResultExport
                 string range = "A" + rowNum + ":Z" + rowNum;
                 valueRange.Range = range;
 
-				Test arrayObject = sortedList[i];
+                MainClass.Test arrayObject = sortedList[i];
 				if (i != 0)
 				{
 					if (arrayObject.CaseID != 0)

@@ -24,9 +24,6 @@ namespace TestRailResultExport
         public static int numberFailed;
         public static int numberBlocked;
 
-        //public static List<Test> listOfTests = new List<Test>();
-        //public static List<Case> listOfCases = new List<Case>();
-
 		private static readonly IConfigReader _configReader = new ConfigReader();
 
         public struct Test
@@ -39,6 +36,7 @@ namespace TestRailResultExport
             public string Title;
             public string Status;
             public string Defects;
+            public string Comment;
         }
 
         public struct Case
@@ -272,6 +270,20 @@ namespace TestRailResultExport
 						suiteName = "deleted";
 					}
 
+                    // Get the most recent defects/bugs and comments on the test
+                    string defects = "";
+                    string comment = "";
+
+                    JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
+
+                    for (int k = 0; k < resultsOfLatestTest.Count; k++)
+                    {
+                        JObject resultObject = resultsOfLatestTest[k].ToObject<JObject>();
+
+                        defects = "\"" + resultObject.Property("defects").Value.ToString() + "\"";
+                        comment = "\"" + resultObject.Property("comment").Value.ToString() + "\"";
+                    }
+
                     //append to csv at this point?
                     //Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status, "defects"); //TODO
                     Test currentTest;
@@ -282,7 +294,8 @@ namespace TestRailResultExport
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
                     currentTest.Status = status;
-                    currentTest.Defects = "defects";
+                    currentTest.Defects = defects;
+                    currentTest.Comment = comment;
 
                     //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
@@ -344,6 +357,20 @@ namespace TestRailResultExport
 						suiteName = "deleted";
 					}
 
+                    // Get the most recent defects/bugs and comments on the test
+                    string defects = "";
+                    string comment = "";
+
+                    JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
+
+                    for (int k = 0; k < resultsOfLatestTest.Count; k++)
+                    {
+                        JObject resultObject = resultsOfLatestTest[k].ToObject<JObject>();
+
+                        defects = "\"" + resultObject.Property("defects").Value.ToString() + "\"";
+                        comment = "\"" + resultObject.Property("comment").Value.ToString() + "\"";
+                    }
+
                     //Test currentTest = new Test(suiteInPlanIDs[i], suiteName, runInPlanIds[i], testID, caseID, title, status, "defects"); //TODO
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
@@ -353,7 +380,8 @@ namespace TestRailResultExport
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
                     currentTest.Status = status;
-                    currentTest.Defects = "defects";
+                    currentTest.Defects = defects;
+                    currentTest.Comment = comment;
 
 
 					listOfTests.Add(currentTest);
