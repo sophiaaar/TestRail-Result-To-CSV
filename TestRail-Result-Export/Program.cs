@@ -592,7 +592,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},", "Suite Name", "Title", "Last Run Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "Suite Name", "Title", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -641,7 +641,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes te blank row between the headings and the first result
                             }
-							string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", testObject.Status);
+                            string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", testObject.Defects, testObject.Comment, testObject.Status);
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
