@@ -188,13 +188,12 @@ namespace TestRailResultExport
             {
                 JObject arrayObject = suitesArray[i].ToObject<JObject>();
                 string id = arrayObject.Property("id").Value.ToString();
+                string suiteName = arrayObject.Property("name").Value.ToString(); //create list of suiteNames to use later
+
 
                 JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
-                listOfCases = CreateListOfCases(client, casesArray, listOfCases);
+                listOfCases = CreateListOfCases(casesArray, listOfCases, id, suiteName);
             }
-
-
-
 
 
             AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs);
@@ -563,7 +562,7 @@ namespace TestRailResultExport
             return csv.ToString();
         }
 
-        public static List<Case> CreateListOfCases(APIClient client, JArray casesArray, List<Case> listOfCases)
+        public static List<Case> CreateListOfCases(JArray casesArray, List<Case> listOfCases, string suiteID, string suiteName)
         {
             //List<Case> listOfCases = new List<Case>();
 
@@ -573,14 +572,9 @@ namespace TestRailResultExport
 
                 allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
 
-                JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString());
-
-                string suiteName = suite.Property("name").Value.ToString();
                 string caseID = arrayObject.Property("id").Value.ToString();
-                string suiteID = arrayObject.Property("suite_id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
 
-                //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
