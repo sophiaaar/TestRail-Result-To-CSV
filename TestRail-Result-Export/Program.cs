@@ -139,6 +139,7 @@ namespace TestRailResultExport
 			{
 				JObject arrayObject = suitesArray[i].ToObject<JObject>();
 				string id = arrayObject.Property("id").Value.ToString();
+                string suiteName = arrayObject.Property("name").Value.ToString();
 
                 //allCaseIDs.Add(id);
 
@@ -146,12 +147,15 @@ namespace TestRailResultExport
 
                 if (fast == true)
                 {
-                    string casesCSV = CreateCsvOfCases(client, casesArray, true);
+                    //string casesCSV = CreateCsvOfCases(client, casesArray, true);
+                    //string casesCSV = CreateCsvOfCasesOld(casesArray, suiteName);
+                    string casesCSV = CreateCsvOfCases(casesArray, suiteName);
                     Console.WriteLine(casesCSV);
                 }
                 else
                 {
-                    string casesCSV = CreateCsvOfCases(client, casesArray, false);
+                    string casesCSV = CreateCsvOfCases(casesArray, suiteName);
+                    Console.WriteLine(casesCSV);
                 }
 			}
 
@@ -495,7 +499,7 @@ namespace TestRailResultExport
 			Console.WriteLine("Done");
 		}
 
-        private static string CreateCsvOfCases(APIClient client, JArray casesArray, bool fast)
+        private static string CreateCsvOfCases(JArray casesArray, string suiteName)
 		{
 			StringBuilder csv = new StringBuilder();
 
@@ -512,26 +516,23 @@ namespace TestRailResultExport
 
                 allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
 
-                JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString());
-                string suiteName = suite.Property("name").Value.ToString();
+                //JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString());
+                //string suiteName = suite.Property("name").Value.ToString();
 
-                if (fast == false)
-                {
-                    string caseID = arrayObject.Property("id").Value.ToString();
-                    string suiteID = arrayObject.Property("suite_id").Value.ToString();
-                    string caseName = arrayObject.Property("title").Value.ToString();
+                string caseID = arrayObject.Property("id").Value.ToString();
+                string suiteID = arrayObject.Property("suite_id").Value.ToString();
+                string caseName = arrayObject.Property("title").Value.ToString();
 
-                    //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
-                    Case newCase;
-                    newCase.SuiteID = suiteID;
-                    newCase.SuiteName = suiteName;
-                    newCase.CaseID = caseID;
-                    newCase.CaseName = caseName;
-                    newCase.Status = StringManipulation.IsInvalid(arrayObject);
+                //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
+                Case newCase;
+                newCase.SuiteID = suiteID;
+                newCase.SuiteName = suiteName;
+                newCase.CaseID = caseID;
+                newCase.CaseName = caseName;
+                newCase.Status = StringManipulation.IsInvalid(arrayObject);
 
 
-                    listOfCases.Add(newCase);
-                }
+                listOfCases.Add(newCase);
 
                 string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value.ToString(), arrayObject.Property("suite_id").Value.ToString(), "\"" + arrayObject.Property("title").Value.ToString() + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
 				csv.Append(newLine);
@@ -539,6 +540,28 @@ namespace TestRailResultExport
 
 			return csv.ToString();
 		}
+
+        private static string CreateCsvOfCasesOld(JArray casesArray, string suiteName)
+        {
+            StringBuilder csv = new StringBuilder();
+
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
+            csv.Append(header);
+
+            for (int i = 0; i < casesArray.Count; i++)
+            {
+                JObject arrayObject = casesArray[i].ToObject<JObject>();
+                allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
+
+                //JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString()); //THIS IS SO SLOW
+                //string suiteName = suite.Property("name").Value.ToString();
+
+                string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
+                csv.Append(newLine);
+            }
+
+            return csv.ToString();
+        }
 
         public static List<Case> CreateListOfCases(APIClient client, JArray casesArray, List<Case> listOfCases)
         {
