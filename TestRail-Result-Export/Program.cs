@@ -500,7 +500,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "Suite Name", "Title", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},", "Suite Name", "Title", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -510,8 +510,6 @@ namespace TestRailResultExport
                 Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID.ToString()); //finding the case that matches the test
                 if (i != 0)
                 {
-                    csv.Append("\n"); //removes the blank row between the headings and the first result
-
                     if (testObject.CaseID != 0)
                     {
 						// check if the case_id is the same as the one above it
@@ -548,10 +546,10 @@ namespace TestRailResultExport
                             // Some values get reset here because this is a brand new line and a new case
                             passValues.Clear();
 							count = 0;
-                            //if (i != 0)
-                            //{
-                            //    csv.Append("\n"); //removes the blank row between the headings and the first result
-                            //}
+                            if (i != 0)
+                            {
+                                csv.Append("\n"); //removes the blank row between the headings and the first result
+                            }
                             string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + caseObject.Status + "\"", "\"" + caseObject.Type + "\"", "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                             // 1) add the status to a list?
                             // if its a pass, value is 100
