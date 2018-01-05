@@ -15,6 +15,7 @@ namespace TestRailResultExport
 	{
 		public static string milestoneID = "";
 		public static List<string> suiteIDs = new List<string>();
+        public static List<string> suiteNames = new List<string>();
         public static List<string> suiteInPlanIDs = new List<string>();
 		public static List<string> runIDs = new List<string>();
         public static List<string> allCaseIDs = new List<string>();
@@ -265,7 +266,7 @@ namespace TestRailResultExport
 					if (suiteIDs[i] != "0")
 					{
                         // Get the suite_id that corresponds to the run_id
-                        JObject suite = (JObject)client.SendGet($"get_suite/{suiteIDs[i]}");
+                        JObject suite = AccessTestRail.GetSuite(client, suiteIDs[i]);
 						suiteName = suite.Property("name").Value.ToString();
 					}
 					else
@@ -288,7 +289,7 @@ namespace TestRailResultExport
                     }
 
                     //append to csv at this point?
-                    //Test currentTest = new Test(suiteIDs[i], suiteName, runIDs[i], testID, caseID, title, status, "defects"); //TODO
+
                     Test currentTest;
                     currentTest.SuiteID = suiteIDs[i];
                     currentTest.SuiteName = suiteName;
@@ -352,7 +353,7 @@ namespace TestRailResultExport
 					// Some suites have been deleted, but the tests and runs remain
 					if (suiteInPlanIDs[i] != "0")
 					{
-						JObject suite = (JObject)client.SendGet($"get_suite/{suiteInPlanIDs[i]}");
+                        JObject suite = AccessTestRail.GetSuite(client, suiteInPlanIDs[i]);
 						suiteName = suite.Property("name").Value.ToString();
 					}
 					else
