@@ -53,6 +53,14 @@ namespace TestRailResultExport
         {
             return (JObject)client.SendGet($"get_suite/" + suiteID);
         }
+        public static JArray GetCaseTypes(APIClient client)
+        {
+            return (JArray)client.SendGet("get_case_types");
+        }
+        public static JArray GetStatuses(APIClient client)
+        {
+            return (JArray)client.SendGet("get_statuses");
+        }
 
 
         public static List<int> GetAllSuites(JArray arrayOfSuites)

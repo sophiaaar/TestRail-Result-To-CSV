@@ -37,7 +37,7 @@ namespace TestRailResultExport
             }
             else
             {
-                return "";
+                return "Valid";
             }
         }
 
@@ -48,29 +48,57 @@ namespace TestRailResultExport
         /// <param name="rawValue">Raw value.</param>
         public static string GetStatus(string rawValue)
         {
-            if (rawValue == "1")
+            switch (rawValue)
             {
-                return "Passed";
+                case "1":
+                    return "Passed";
+                case "2":
+                    return "Blocked";
+                case "3":
+                    return "Untested";
+                case "4":
+                    return "Retest";
+                case "5":
+                    return "Failed";
+                case "6":
+                    return "Pending";
+                default:
+                    return "Other";
             }
-            else if (rawValue == "2")
+        }
+
+        public static string GetCaseType(string rawValue)
+        {
+            switch (rawValue)
             {
-                return "Blocked";
-            }
-            else if (rawValue == "3")
-            {
-                return "Untested";
-            }
-            else if (rawValue == "4")
-            {
-                return "Retest";
-            }
-            else if (rawValue == "5")
-            {
-                return "Failed";
-            }
-            else
-            {
-                return "Other";
+                case "1":
+                    return "Acceptance";
+                case "2":
+                    return "Accessibility";
+                case "3":
+                    return "Automated";
+                case "4":
+                    return "Compatibility";
+                case "5":
+                    return "Destructive";
+                case "6":
+                    return "Functional";
+                case "7":
+                    return "Other";
+                case "8":
+                    return "Performance";
+                case "9":
+                    return "Regression";
+                case "10":
+                    return "Security";
+                case "11":
+                    return "Smoke and Sanity";
+                case "12":
+                    return "Usability";
+                case "13":
+                    return "Use Case";
+                default:
+                    return "Unknown";
             }
         }
     }

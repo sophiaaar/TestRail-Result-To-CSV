@@ -47,6 +47,7 @@ namespace TestRailResultExport
             public string CaseID;
             public string CaseName;
             public string Status;
+            public string Type;
         }
 
 		public static void Main(string[] args)
@@ -79,6 +80,7 @@ namespace TestRailResultExport
 
             if (selection == "1")
             {
+                //JArray test = AccessTestRail.GetStatuses(client);
                 GetAllCases(client, true);
             }
             else if (selection == "2")
@@ -522,6 +524,7 @@ namespace TestRailResultExport
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string suiteID = arrayObject.Property("suite_id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
+                string caseType = arrayObject.Property("type_id").Value.ToString();
 
                 //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
                 Case newCase;
@@ -530,6 +533,7 @@ namespace TestRailResultExport
                 newCase.CaseID = caseID;
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
+                newCase.Type = StringManipulation.GetCaseType(caseType);
 
 
                 listOfCases.Add(newCase);
@@ -575,6 +579,7 @@ namespace TestRailResultExport
 
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
+                string caseType = arrayObject.Property("type_id").Value.ToString();
 
                 Case newCase;
                 newCase.SuiteID = suiteID;
@@ -582,7 +587,7 @@ namespace TestRailResultExport
                 newCase.CaseID = caseID;
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
-
+                newCase.Type = StringManipulation.GetCaseType(caseType);
 
                 listOfCases.Add(newCase);
             }
@@ -592,13 +597,14 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "Suite Name", "Title", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},", "Suite Name", "Title", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
             {
                 Test testObject = sortedList[i];
+                Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID.ToString()); //finding the case that matches the test
                 if (i != 0)
                 {
                     if (testObject.CaseID != 0)
@@ -641,7 +647,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes te blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", testObject.Defects, testObject.Comment, testObject.Status);
+                            string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", caseObject.Status, caseObject.Type, testObject.Defects, testObject.Comment, testObject.Status);
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -669,8 +675,12 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Has not been run", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Has not been run", caseNotRun.Status + " case", "\n");
                     csv.Append(line);
+                }
+                else
+                {
+                    //do this whole section first?
                 }
             }
 
