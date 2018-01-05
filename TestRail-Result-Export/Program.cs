@@ -79,8 +79,7 @@ namespace TestRailResultExport
         private static void EvaluateChoice(APIClient client)
         {
             Console.WriteLine("To create a CSV of all cases, press 1,");
-            Console.WriteLine("To create a CSV of all tests in one long list (quicker but not organised), press 2,");
-            Console.WriteLine("To create a CSV of all tests with orgnanised rows, press 3");
+            Console.WriteLine("To create a CSV of all tests, press 2");
 
             string selection = Console.ReadLine();
 
@@ -89,27 +88,12 @@ namespace TestRailResultExport
                 //JArray test = AccessTestRail.GetStatuses(client);
                 GetAllCases(client, true);
             }
-            else if (selection == "2")
-            {
-                GetAllTestsFast(client);
-            }
             else if (selection == "3")
             {
                 Console.WriteLine("How many previous results do you want to see?");
                 int previousResults = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("Simple view? Y or N");
-                string simple = Console.ReadLine();
-
-                if (simple == "Y" || simple == "y")
-                {
-                    //GetAllCases(client, false);
-                    GetAllTests(client, previousResults, true);
-                }
-                else
-                {
-                    GetAllTests(client, previousResults, false);
-                }
+                GetAllTests(client, previousResults);
             }
             else
             {
@@ -150,14 +134,11 @@ namespace TestRailResultExport
 				string id = arrayObject.Property("id").Value.ToString();
                 string suiteName = arrayObject.Property("name").Value.ToString();
 
-                //allCaseIDs.Add(id);
 
                 JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
 
                 if (fast == true)
                 {
-                    //string casesCSV = CreateCsvOfCases(client, casesArray, true);
-                    //string casesCSV = CreateCsvOfCasesOld(casesArray, suiteName);
                     string casesCSV = CreateCsvOfCases(casesArray, suiteName);
                     Console.WriteLine(casesCSV);
                 }
@@ -178,7 +159,7 @@ namespace TestRailResultExport
         /// Retrieves TestRail tests (both in and out of plans)
         /// </summary>
         /// <param name="previousResults">Number of previous results to include.</param>
-		private static void GetAllTests(APIClient client, int previousResults, bool simple)
+		private static void GetAllTests(APIClient client, int previousResults)
 		{
 			Console.WriteLine("Enter milestone ID: ");
 			milestoneID = Console.ReadLine();
@@ -191,7 +172,6 @@ namespace TestRailResultExport
 
             List<Case> listOfCases = new List<Case>();
             List<Test> listOfTests = new List<Test>();
-
             List<Suite> listOfSuites = new List<Suite>();
 
             JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
@@ -415,101 +395,11 @@ namespace TestRailResultExport
             Console.WriteLine("Number Passed, Number Failed, Number Blocked,\n");
             Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
 
-            if (simple == true)
-            {
-                string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
-				Console.WriteLine(csvOfTests);
-            }
-            else
-            {
-                string csvOfTests = CreateCSVOfTestsOld(sortedList, previousResults);
-                Console.WriteLine(csvOfTests);
-            }
+            string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
+            Console.WriteLine(csvOfTests);
 
             //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults);
 
-
-			Console.SetOut(oldOut);
-			writer.Close();
-			ostrm.Close();
-			Console.WriteLine("Done");
-		}
-
-
-
-        /// <summary>
-        /// Retrieves all tests but doesn't order them
-        /// </summary>
-        /// <param name="client">APIClient.</param>
-		private static void GetAllTestsFast(APIClient client)
-		{
-			Console.WriteLine("Enter milestone ID: ");
-			milestoneID = Console.ReadLine();
-
-            JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
-            JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
-
-            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs);
-
-			FileStream ostrm;
-			StreamWriter writer;
-			TextWriter oldOut = Console.Out;
-
-			try
-			{
-				ostrm = new FileStream("Tests.csv", FileMode.OpenOrCreate, FileAccess.Write);
-				writer = new StreamWriter(ostrm);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Cannot open Tests.csv for writing");
-				Console.WriteLine(e.Message);
-				return;
-			}
-			Console.SetOut(writer);
-
-			for (int i = 0; i < runIDs.Count; i++)
-			{
-                JArray testsArray = AccessTestRail.GetTestsInRun(client, runIDs[i]);
-
-				string suiteName = "";
-
-				if (suiteIDs[i] != "0")
-				{
-					JObject suite = (JObject)client.SendGet($"get_suite/{suiteIDs[i]}");
-					suiteName = suite.Property("name").Value.ToString();
-				}
-				else
-				{
-					suiteName = "deleted";
-				}
-
-				string csvOfTests = CreateCSVOfTestsFast(testsArray, suiteIDs[i], suiteName);
-				Console.WriteLine(csvOfTests);
-
-			}
-
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
-
-			for (int i = 0; i < runInPlanIds.Count; i++)
-			{
-				JArray testsArray = AccessTestRail.GetTestsInRun(client, runInPlanIds[i]);
-
-				string suiteName = "";
-
-				if (suiteInPlanIDs[i] != "0")
-				{
-					JObject suite = (JObject)client.SendGet($"get_suite/{suiteInPlanIDs[i]}");
-					suiteName = suite.Property("name").Value.ToString();
-				}
-				else
-				{
-					suiteName = "deleted";
-				}
-
-				string csvOfTests = CreateCSVOfTestsFast(testsArray, suiteInPlanIDs[i], suiteName);
-				Console.WriteLine(csvOfTests);
-			}
 
 			Console.SetOut(oldOut);
 			writer.Close();
@@ -573,9 +463,6 @@ namespace TestRailResultExport
                 JObject arrayObject = casesArray[i].ToObject<JObject>();
                 allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
 
-                //JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString()); //THIS IS SO SLOW
-                //string suiteName = suite.Property("name").Value.ToString();
-
                 string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
                 csv.Append(newLine);
             }
@@ -613,7 +500,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},", "Suite Name", "Title", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "Suite Name", "Title", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -623,6 +510,8 @@ namespace TestRailResultExport
                 Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID.ToString()); //finding the case that matches the test
                 if (i != 0)
                 {
+                    csv.Append("\n"); //removes the blank row between the headings and the first result
+
                     if (testObject.CaseID != 0)
                     {
 						// check if the case_id is the same as the one above it
@@ -659,11 +548,11 @@ namespace TestRailResultExport
                             // Some values get reset here because this is a brand new line and a new case
                             passValues.Clear();
 							count = 0;
-                            if (i != 0)
-                            {
-                                csv.Append("\n"); //removes te blank row between the headings and the first result
-                            }
-                            string line = string.Format("{0},{1},{2},", testObject.SuiteName, "\"" + testObject.Title + "\"", caseObject.Status, caseObject.Type, testObject.Defects, testObject.Comment, testObject.Status);
+                            //if (i != 0)
+                            //{
+                            //    csv.Append("\n"); //removes the blank row between the headings and the first result
+                            //}
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + caseObject.Status + "\"", "\"" + caseObject.Type + "\"", "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -699,64 +588,6 @@ namespace TestRailResultExport
                     //do this whole section first?
                 }
             }
-
-			return csv.ToString();
-		}
-
-        public static string CreateCSVOfTestsOld(List<Test> sortedList, int previousResults)
-        {
-            StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Suite ID", "Suite Name", "Run ID", "Test ID", "CaseID", "Title", "Status", "\n");
-            csv.Append(header);
-            int count = 0;
-            for (int i = 0; i < sortedList.Count; i++)
-            {
-                Test arrayObject = sortedList[i];
-                if (i != 0)
-                {
-                    if (arrayObject.CaseID != 0)
-                    {
-                        // check if the case_id is the same as the one above it
-                        if (arrayObject.CaseID == sortedList[i - 1].CaseID)
-                        {
-                            count++;
-                            if (count < previousResults)
-                            {
-                                string line = string.Format("{0},{1},{2},", arrayObject.RunID, arrayObject.TestID, arrayObject.Status);
-                                csv.Append(line);
-                            }
-                            else
-                            {
-                            }
-                        }
-                        else
-                        {
-                            count = 0;
-                            csv.Append("\n");
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", arrayObject.SuiteID, arrayObject.SuiteName, arrayObject.RunID, arrayObject.TestID, arrayObject.CaseID, "\"" + arrayObject.Title + "\"", arrayObject.Status);
-                            csv.Append(line);
-
-                        }
-                    }
-                }
-            }
-
-            return csv.ToString();
-        }
-
-		public static string CreateCSVOfTestsFast(JArray arrayOfTests, string suiteId, string suiteName)
-		{
-			StringBuilder csv = new StringBuilder();
-
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", "Suite ID", "Suite Name", "Run ID", "Test ID", "Case ID", "Title", "Status", "Estimate", "\n");
-			csv.Append(header);
-
-			for (int i = 0; i < arrayOfTests.Count; i++)
-			{
-				JObject arrayObject = arrayOfTests[i].ToObject<JObject>();
-                string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", suiteId, suiteName, arrayObject.Property("run_id").Value, arrayObject.Property("id").Value, arrayObject.Property("case_id").Value, "\"" + arrayObject.Property("title").Value.ToString() + "\"", StringManipulation.GetStatus(arrayObject.Property("status_id").Value.ToString()), arrayObject.Property("estimate").Value, "\n");
-				csv.Append(newLine);
-			}
 
 			return csv.ToString();
 		}
