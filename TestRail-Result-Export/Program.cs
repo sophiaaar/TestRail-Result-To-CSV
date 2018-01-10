@@ -312,7 +312,7 @@ namespace TestRailResultExport
                     currentTest.Title = title;
                     currentTest.Status = status;
                     currentTest.Defects = defects;
-                    currentTest.Comment = comment;
+                    currentTest.Comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100))); //removes non-ascii and cuts off after 100 chars
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
@@ -405,7 +405,7 @@ namespace TestRailResultExport
                     currentTest.Title = title;
                     currentTest.Status = status;
                     currentTest.Defects = defects;
-                    currentTest.Comment = comment;
+                    currentTest.Comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100))); //removes non-ascii and cuts off after 100 chars
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
@@ -473,25 +473,6 @@ namespace TestRailResultExport
 
 			return csv.ToString();
 		}
-
-        //private static string CreateCsvOfCasesOld(JArray casesArray, string suiteName)
-        //{
-        //    StringBuilder csv = new StringBuilder();
-
-        //    string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
-        //    csv.Append(header);
-
-        //    for (int i = 0; i < casesArray.Count; i++)
-        //    {
-        //        JObject arrayObject = casesArray[i].ToObject<JObject>();
-        //        allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
-
-        //        string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
-        //        csv.Append(newLine);
-        //    }
-
-        //    return csv.ToString();
-        //}
 
         public static List<Case> CreateListOfCases(JArray casesArray, List<Case> listOfCases, string suiteID, string suiteName)
         {
@@ -627,5 +608,24 @@ namespace TestRailResultExport
             List<Case> sortedList = listOfCases.OrderBy(o => o.CaseID).ToList();
             return sortedList;
         }
+
+        //private static string CreateCsvOfCasesOld(JArray casesArray, string suiteName)
+        //{
+        //    StringBuilder csv = new StringBuilder();
+
+        //    string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
+        //    csv.Append(header);
+
+        //    for (int i = 0; i < casesArray.Count; i++)
+        //    {
+        //        JObject arrayObject = casesArray[i].ToObject<JObject>();
+        //        allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
+
+        //        string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
+        //        csv.Append(newLine);
+        //    }
+
+        //    return csv.ToString();
+        //}
 	}
 }
