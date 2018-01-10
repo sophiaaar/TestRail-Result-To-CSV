@@ -17,7 +17,7 @@ namespace TestRailResultExport
 		public static List<string> suiteIDs = new List<string>();
         public static List<string> suiteNames = new List<string>();
         public static List<string> suiteInPlanIDs = new List<string>();
-		//public static List<string> runIDs = new List<string>();
+		public static List<string> runIDs = new List<string>();
         public static List<Run> runs = new List<Run>();
         public static List<string> allCaseIDs = new List<string>();
         public static List<string> caseIDsInMilestone = new List<string>(); //case IDs that have been run
@@ -202,7 +202,7 @@ namespace TestRailResultExport
             }
 
 
-            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runs);
+            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs, runs);
 
 			FileStream ostrm;
 			StreamWriter writer;
@@ -221,9 +221,9 @@ namespace TestRailResultExport
 			}
 			Console.SetOut(writer);
 
-			for (int i = 0; i < runs.Count; i++)
+			for (int i = 0; i < runIDs.Count; i++)
 			{
-                JArray testsArray = AccessTestRail.GetTestsInRun(client, runs[i].RunID);
+                JArray testsArray = AccessTestRail.GetTestsInRun(client, runIDs[i]);
 
                 string testID = "";
                 int caseID = 0;
@@ -324,7 +324,7 @@ namespace TestRailResultExport
                     Test currentTest;
                     currentTest.SuiteID = suiteIDs[i];
                     currentTest.SuiteName = suiteName;
-                    currentTest.RunID = runID;
+                    currentTest.RunID = runIDs[i];
                     currentTest.TestID = testID;
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
