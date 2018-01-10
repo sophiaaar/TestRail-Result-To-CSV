@@ -330,7 +330,7 @@ namespace TestRailResultExport
                     currentTest.Title = title;
                     currentTest.Status = status;
                     currentTest.Defects = defects;
-                    currentTest.Comment = comment; //removes non-ascii and cuts off after 100 chars
+                    currentTest.Comment = comment;
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
@@ -413,6 +413,7 @@ namespace TestRailResultExport
                     // Find config for runID
                     Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
                     string config = currentRun.Config;
+                    string runID = currentRun.RunID;
 
                     if (comment.Length > 99)
                     {
@@ -441,7 +442,7 @@ namespace TestRailResultExport
                     currentTest.Title = title;
                     currentTest.Status = status;
                     currentTest.Defects = defects;
-                    currentTest.Comment = comment; //removes non-ascii and cuts off after 100 chars
+                    currentTest.Comment = comment;
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
@@ -590,7 +591,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
