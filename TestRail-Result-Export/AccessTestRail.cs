@@ -75,7 +75,7 @@ namespace TestRailResultExport
             return listOfSuiteIds;
         }
 
-        public static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs)
+        public static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs, List<MainClass.Run> runs)
         {
             List<JArray> ListOfRunsInPlan = new List<JArray>();
             List<string> planIds = new List<string>();
@@ -111,11 +111,18 @@ namespace TestRailResultExport
 
                                 string runInPlanId = runObject.Property("id").Value.ToString();
 
+                                MainClass.Run run;
+                                run.RunID = runInPlanId;
+                                run.Config = runObject.Property("config").Value.ToString();
+                                runs.Add(run);
+
                                 if (!runInPlanIds.Contains(runInPlanId))
                                 {
                                     runInPlanIds.Add(runInPlanId);
                                     string suiteInPlanId = runObject.Property("suite_id").Value.ToString();
                                     suiteInPlanIDs.Add(suiteInPlanId);
+
+
                                 }
                             }
                         }

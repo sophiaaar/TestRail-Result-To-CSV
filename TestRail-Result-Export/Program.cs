@@ -177,7 +177,7 @@ namespace TestRailResultExport
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
+            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runs);
 
             List<Case> listOfCases = new List<Case>();
             List<Test> listOfTests = new List<Test>();
@@ -411,9 +411,9 @@ namespace TestRailResultExport
                     }
 
                     // Find config for runID
-                    //Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
-                    //string config = currentRun.Config;
-                    //string runID = currentRun.RunID;
+                    Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
+                    string config = currentRun.Config;
+                    string runID = currentRun.RunID;
 
                     if (comment.Length > 99)
                     {
@@ -443,7 +443,7 @@ namespace TestRailResultExport
                     currentTest.Status = status;
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
-                    currentTest.Config = "";
+                    currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
 					listOfTests.Add(currentTest);
