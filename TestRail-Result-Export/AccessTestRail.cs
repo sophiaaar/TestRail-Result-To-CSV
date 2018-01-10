@@ -125,7 +125,7 @@ namespace TestRailResultExport
             return runInPlanIds;
         }
 
-        public static void GetSuitesAndRuns(JArray runsArr, List<string> suiteIDs, List<MainClass.Run> runs)
+        public static void GetSuitesAndRuns(JArray runsArr, List<string> suiteIDs, List<string> runIDs, List<MainClass.Run> runs)
         {
             for (int i = 0; i < runsArr.Count; i++)
             {
@@ -139,7 +139,7 @@ namespace TestRailResultExport
                     string run_id = arrayObject.Property("id").Value.ToString();
 
                     suiteIDs.Add(suite_id);
-                    //runIDs.Add(run_id);
+                    runIDs.Add(run_id);
 
                     MainClass.Run run;
                     run.RunID = run_id;
@@ -153,7 +153,7 @@ namespace TestRailResultExport
                     string run_id = arrayObject.Property("id").Value.ToString();
 
                     suiteIDs.Add(suite_id);
-                    //runIDs.Add(run_id);
+                    runIDs.Add(run_id);
 
                     MainClass.Run run;
                     run.RunID = run_id;
