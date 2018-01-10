@@ -17,7 +17,7 @@ namespace TestRailResultExport
 		public static List<string> suiteIDs = new List<string>();
         public static List<string> suiteNames = new List<string>();
         public static List<string> suiteInPlanIDs = new List<string>();
-		public static List<string> runIDs = new List<string>();
+		//public static List<string> runIDs = new List<string>();
         public static List<Run> runs = new List<Run>();
         public static List<string> allCaseIDs = new List<string>();
         public static List<string> caseIDsInMilestone = new List<string>(); //case IDs that have been run
@@ -202,7 +202,7 @@ namespace TestRailResultExport
             }
 
 
-            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs, runs);
+            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runs);
 
 			FileStream ostrm;
 			StreamWriter writer;
@@ -221,9 +221,9 @@ namespace TestRailResultExport
 			}
 			Console.SetOut(writer);
 
-			for (int i = 0; i < runIDs.Count; i++)
+			for (int i = 0; i < runs.Count; i++)
 			{
-                JArray testsArray = AccessTestRail.GetTestsInRun(client, runIDs[i]);
+                JArray testsArray = AccessTestRail.GetTestsInRun(client, runs[i].RunID);
 
                 string testID = "";
                 int caseID = 0;
@@ -298,20 +298,33 @@ namespace TestRailResultExport
                     }
 
                     // Find config for runID
-                    Run currentRun = runs.Find(o => o.RunID == runIDs[i]);
-                    string config = currentRun.Config;
+                    string runID = runs[i].RunID;
+                    string config = runs[i].Config;
 
                     //append to csv at this point?
 
                     if (comment.Length > 99)
                     {
-                        Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                        comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                    }
+
+                    if (comment.Contains('"'))
+                    {
+                        comment = comment.Replace('"', ' ');
+                    }
+                    else if (comment.Contains(','))
+                    {
+                        comment = comment.Replace(',', ' ');
+                    }
+                    else if (comment.Contains('\n'))
+                    {
+                        comment = comment.Replace('\n', ' ');
                     }
 
                     Test currentTest;
                     currentTest.SuiteID = suiteIDs[i];
                     currentTest.SuiteName = suiteName;
-                    currentTest.RunID = runIDs[i];
+                    currentTest.RunID = runID;
                     currentTest.TestID = testID;
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
@@ -403,7 +416,20 @@ namespace TestRailResultExport
 
                     if (comment.Length > 99)
                     {
-                        Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                        comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                    }
+
+                    if (comment.Contains('"'))
+                    {
+                        comment = comment.Replace('"', ' '); 
+                    }
+                    else if (comment.Contains(','))
+                    {
+                        comment = comment.Replace(',', ' ');
+                    }
+                    else if (comment.Contains('\n'))
+                    {
+                        comment = comment.Replace('\n', ' ');
                     }
 
                     Test currentTest;
