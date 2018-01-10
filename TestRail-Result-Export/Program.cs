@@ -272,8 +272,6 @@ namespace TestRailResultExport
 					{
                         Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteIDs[i]);
                         // Get the suite_id that corresponds to the run_id
-                        //JObject suite = AccessTestRail.GetSuite(client, suiteIDs[i]);
-                        //suiteName = suite.Property("name").Value.ToString();
                         suiteName = currentSuite.SuiteName;
 					}
 					else
@@ -334,13 +332,10 @@ namespace TestRailResultExport
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
-                    //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
                 }
 
 			}
-
-            //List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs);
 
 			for (int i = 0; i < runInPlanIds.Count; i++)
 			{
@@ -378,8 +373,6 @@ namespace TestRailResultExport
 					{
 						numberBlocked++;
 					}
-
-					//allCaseIDs.Add(caseID);
 
 					string suiteName = "";
 
@@ -490,15 +483,11 @@ namespace TestRailResultExport
 
                 allCaseIDs.Add(Int32.Parse(arrayObject.Property("id").Value.ToString()));
 
-                //JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString());
-                //string suiteName = suite.Property("name").Value.ToString();
-
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string suiteID = arrayObject.Property("suite_id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
                 string caseType = arrayObject.Property("type_id").Value.ToString();
 
-                //Case newCase = new Case(suiteID, suiteName, caseID, caseName, StringManipulation.IsInvalid(arrayObject));
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
@@ -519,8 +508,6 @@ namespace TestRailResultExport
 
         public static List<Case> CreateListOfCases(JArray casesArray, List<Case> listOfCases, string suiteID, string suiteName)
         {
-            //List<Case> listOfCases = new List<Case>();
-
             for (int i = 0; i < casesArray.Count; i++)
             {
                 JObject arrayObject = casesArray[i].ToObject<JObject>();
@@ -593,7 +580,7 @@ namespace TestRailResultExport
                             // Some values get reset here because this is a brand new line and a new case
                             passValues.Clear();
 							count = 0;
-                            if (i != 0)
+                            if (i != 1)
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
@@ -612,6 +599,29 @@ namespace TestRailResultExport
 
 						}
 					}
+                    else
+                    {
+                        //// Some values get reset here because this is a brand new line and a new case
+                        //passValues.Clear();
+                        //count = 0;
+                        //if (i != 1)
+                        //{
+                        //    csv.Append("\n"); //removes the blank row between the headings and the first result
+                        //}
+                        //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        //// 1) add the status to a list?
+                        //// if its a pass, value is 100
+                        //if (testObject.Status == "Passed")
+                        //{
+                        //    passValues.Add(100);
+                        //}
+                        //else
+                        //{
+                        //    passValues.Add(0);
+                        //}
+                        //csv.Append(line);
+                    }
+
 				}
 			}
             csv.Append("\n");
