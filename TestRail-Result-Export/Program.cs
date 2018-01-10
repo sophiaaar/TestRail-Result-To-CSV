@@ -428,9 +428,9 @@ namespace TestRailResultExport
                     {
                         comment = comment.Replace(',', ' ');
                     }
-                    else if (comment.Contains('\n'))
+                    else if (comment.Contains(Environment.NewLine))
                     {
-                        comment = comment.Replace('\n', ' ');
+                        comment = comment.Replace(Environment.NewLine, " ");
                     }
 
                     Test currentTest;
