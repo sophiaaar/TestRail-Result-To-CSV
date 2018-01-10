@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace TestRailResultExport
 {
-	class MainClass
+	public class MainClass
 	{
 		public static string milestoneID = "";
 		public static List<string> suiteIDs = new List<string>();
@@ -40,6 +40,7 @@ namespace TestRailResultExport
             public string Defects;
             public string Comment;
             public string Config;
+            public string EditorVersion;
         }
 
         public struct Case
@@ -283,6 +284,7 @@ namespace TestRailResultExport
                     // Get the most recent defects/bugs and comments on the test
                     string defects = "";
                     string comment = "";
+                    string editorVersion = "";
 
                     JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
 
@@ -292,6 +294,7 @@ namespace TestRailResultExport
 
                         defects = resultObject.Property("defects").Value.ToString();
                         comment = resultObject.Property("comment").Value.ToString();
+                        editorVersion = resultObject.Property("editorversion").Value.ToString();
                     }
 
                     // Find config for runID
@@ -311,6 +314,7 @@ namespace TestRailResultExport
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
                     currentTest.Config = config;
+                    currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
                     //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
@@ -375,6 +379,7 @@ namespace TestRailResultExport
                     // Get the most recent defects/bugs and comments on the test
                     string defects = "";
                     string comment = "";
+                    string editorVersion = "";
 
                     JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
 
@@ -384,6 +389,7 @@ namespace TestRailResultExport
 
                         defects = resultObject.Property("defects").Value.ToString();
                         comment = resultObject.Property("comment").Value.ToString();
+                        editorVersion = resultObject.Property("editorversion").Value.ToString();
                     }
 
                     // Find config for runID
@@ -401,7 +407,7 @@ namespace TestRailResultExport
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
                     currentTest.Config = config;
-
+                    currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
 					listOfTests.Add(currentTest);
 				}
@@ -468,24 +474,24 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
-        private static string CreateCsvOfCasesOld(JArray casesArray, string suiteName)
-        {
-            StringBuilder csv = new StringBuilder();
+        //private static string CreateCsvOfCasesOld(JArray casesArray, string suiteName)
+        //{
+        //    StringBuilder csv = new StringBuilder();
 
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
-            csv.Append(header);
+        //    string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
+        //    csv.Append(header);
 
-            for (int i = 0; i < casesArray.Count; i++)
-            {
-                JObject arrayObject = casesArray[i].ToObject<JObject>();
-                allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
+        //    for (int i = 0; i < casesArray.Count; i++)
+        //    {
+        //        JObject arrayObject = casesArray[i].ToObject<JObject>();
+        //        allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
 
-                string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
-                csv.Append(newLine);
-            }
+        //        string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
+        //        csv.Append(newLine);
+        //    }
 
-            return csv.ToString();
-        }
+        //    return csv.ToString();
+        //}
 
         public static List<Case> CreateListOfCases(JArray casesArray, List<Case> listOfCases, string suiteID, string suiteName)
         {
@@ -517,7 +523,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},", "Suite Name", "Title", "Config", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},", "Suite Name", "Title", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -567,7 +573,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Status + "\"", "\"" + caseObject.Type + "\"", "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -595,7 +601,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Untested", caseNotRun.Status + " case", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "\n");
                     csv.Append(line);
                 }
                 else
