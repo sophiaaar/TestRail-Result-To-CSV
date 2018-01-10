@@ -415,6 +415,12 @@ namespace TestRailResultExport
                     string config = currentRun.Config;
                     string runID = currentRun.RunID;
 
+                    if (config.Contains(','))
+                    {
+                        int index = config.IndexOf(',');
+                        config = config.Substring(0, index);
+                    }
+
                     if (comment.Length > 99)
                     {
                         comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
