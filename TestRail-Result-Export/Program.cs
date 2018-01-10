@@ -294,7 +294,7 @@ namespace TestRailResultExport
 
                         defects = resultObject.Property("defects").Value.ToString();
                         comment = resultObject.Property("comment").Value.ToString();
-                        editorVersion = resultObject.Property("editorversion").Value.ToString();
+                        editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
                     }
 
                     // Find config for runID
@@ -302,6 +302,11 @@ namespace TestRailResultExport
                     string config = currentRun.Config;
 
                     //append to csv at this point?
+
+                    if (comment.Length > 99)
+                    {
+                        Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                    }
 
                     Test currentTest;
                     currentTest.SuiteID = suiteIDs[i];
@@ -312,7 +317,7 @@ namespace TestRailResultExport
                     currentTest.Title = title;
                     currentTest.Status = status;
                     currentTest.Defects = defects;
-                    currentTest.Comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100))); //removes non-ascii and cuts off after 100 chars
+                    currentTest.Comment = comment; //removes non-ascii and cuts off after 100 chars
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
@@ -389,12 +394,17 @@ namespace TestRailResultExport
 
                         defects = resultObject.Property("defects").Value.ToString();
                         comment = resultObject.Property("comment").Value.ToString();
-                        editorVersion = resultObject.Property("editorversion").Value.ToString();
+                        editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
                     }
 
                     // Find config for runID
                     Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
                     string config = currentRun.Config;
+
+                    if (comment.Length > 99)
+                    {
+                        Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                    }
 
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
@@ -405,7 +415,7 @@ namespace TestRailResultExport
                     currentTest.Title = title;
                     currentTest.Status = status;
                     currentTest.Defects = defects;
-                    currentTest.Comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100))); //removes non-ascii and cuts off after 100 chars
+                    currentTest.Comment = comment; //removes non-ascii and cuts off after 100 chars
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
