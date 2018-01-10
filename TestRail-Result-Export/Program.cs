@@ -18,6 +18,7 @@ namespace TestRailResultExport
         public static List<string> suiteNames = new List<string>();
         public static List<string> suiteInPlanIDs = new List<string>();
 		public static List<string> runIDs = new List<string>();
+        public static List<Run> runs = new List<Run>();
         public static List<string> allCaseIDs = new List<string>();
         public static List<string> caseIDsInMilestone = new List<string>(); //case IDs that have been run
 
@@ -38,6 +39,7 @@ namespace TestRailResultExport
             public string Status;
             public string Defects;
             public string Comment;
+            public string Config;
         }
 
         public struct Case
@@ -54,6 +56,12 @@ namespace TestRailResultExport
         {
             public string SuiteID;
             public string SuiteName;
+        }
+
+        public struct Run
+        {
+            public string RunID;
+            public string Config;
         }
 
 		public static void Main(string[] args)
@@ -193,7 +201,7 @@ namespace TestRailResultExport
             }
 
 
-            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs);
+            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs, runs);
 
 			FileStream ostrm;
 			StreamWriter writer;
@@ -282,9 +290,13 @@ namespace TestRailResultExport
                     {
                         JObject resultObject = resultsOfLatestTest[k].ToObject<JObject>();
 
-                        defects = "\"" + resultObject.Property("defects").Value.ToString() + "\"";
-                        comment = "\"" + resultObject.Property("comment").Value.ToString() + "\"";
+                        defects = resultObject.Property("defects").Value.ToString();
+                        comment = resultObject.Property("comment").Value.ToString();
                     }
+
+                    // Find config for runID
+                    Run currentRun = runs.Find(o => o.RunID == runIDs[i]);
+                    string config = currentRun.Config;
 
                     //append to csv at this point?
 
@@ -298,6 +310,7 @@ namespace TestRailResultExport
                     currentTest.Status = status;
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
+                    currentTest.Config = config;
 
                     //arrayOfTests[i] = currentTest;
 					listOfTests.Add(currentTest);
@@ -369,11 +382,14 @@ namespace TestRailResultExport
                     {
                         JObject resultObject = resultsOfLatestTest[k].ToObject<JObject>();
 
-                        defects = "\"" + resultObject.Property("defects").Value.ToString() + "\"";
-                        comment = "\"" + resultObject.Property("comment").Value.ToString() + "\"";
+                        defects = resultObject.Property("defects").Value.ToString();
+                        comment = resultObject.Property("comment").Value.ToString();
                     }
 
-                    //Test currentTest = new Test(suiteInPlanIDs[i], suiteName, runInPlanIds[i], testID, caseID, title, status, "defects"); //TODO
+                    // Find config for runID
+                    Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
+                    string config = currentRun.Config;
+
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
                     currentTest.SuiteName = suiteName;
@@ -384,6 +400,7 @@ namespace TestRailResultExport
                     currentTest.Status = status;
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
+                    currentTest.Config = config;
 
 
 					listOfTests.Add(currentTest);
@@ -500,7 +517,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},", "Suite Name", "Title", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},", "Suite Name", "Title", "Config", "Status of Case", "Case Type", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -550,7 +567,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + caseObject.Status + "\"", "\"" + caseObject.Type + "\"", "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Status + "\"", "\"" + caseObject.Type + "\"", "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -578,7 +595,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Has not been run", caseNotRun.Status + " case", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "Untested", caseNotRun.Status + " case", "\n");
                     csv.Append(line);
                 }
                 else
@@ -606,45 +623,3 @@ namespace TestRailResultExport
         }
 	}
 }
-
-//public class Test
-//{
-//    public string SuiteID;
-//    public string SuiteName;
-//    public string RunID;
-//    public string TestID;
-//    public int CaseID;
-//    public string Title;
-//    public string Status;
-//    public string Defects;
-
-//    public Test(string suiteID, string suiteName, string runID, string testID, int caseID, string title, string status, string defects)
-//    {
-//        SuiteID = suiteID;
-//        SuiteName = suiteName;
-//        RunID = runID;
-//        TestID = testID;
-//        CaseID = caseID;
-//        Title = title;
-//        Status = status;
-//        Defects = defects;
-//    }
-//}
-
-//public class Case
-//{
-//    public string SuiteID;
-//    public string SuiteName;
-//    public string CaseID;
-//    public string CaseName;
-//    public string Status;
-
-//    public Case(string suiteID, string suiteName, string caseID, string caseName, string status)
-//    {
-//        SuiteID = suiteID;
-//        SuiteName = suiteName;
-//        CaseID = caseID;
-//        CaseName = caseName;
-//        Status = status;
-//    }
-//}
