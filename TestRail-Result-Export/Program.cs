@@ -19,8 +19,8 @@ namespace TestRailResultExport
         public static List<string> suiteInPlanIDs = new List<string>();
 		public static List<string> runIDs = new List<string>();
         public static List<Run> runs = new List<Run>();
-        public static List<string> allCaseIDs = new List<string>();
-        public static List<string> caseIDsInMilestone = new List<string>(); //case IDs that have been run
+        public static List<int> allCaseIDs = new List<int>();
+        public static List<int> caseIDsInMilestone = new List<int>(); //case IDs that have been run
 
         public static int numberPassed;
         public static int numberFailed;
@@ -32,7 +32,7 @@ namespace TestRailResultExport
         {
             public string SuiteID;
             public string SuiteName;
-            public string RunID;
+            public int RunID;
             public string TestID;
             public int CaseID;
             public string Title;
@@ -47,7 +47,7 @@ namespace TestRailResultExport
         {
             public string SuiteID;
             public string SuiteName;
-            public string CaseID;
+            public int CaseID;
             public string CaseName;
             public string Status;
             public string Type;
@@ -242,9 +242,9 @@ namespace TestRailResultExport
                         caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
                     }
 
-                    if (!caseIDsInMilestone.Contains(caseID.ToString()))
+                    if (!caseIDsInMilestone.Contains(caseID))
                     {
-                        caseIDsInMilestone.Add(caseID.ToString());
+                        caseIDsInMilestone.Add(caseID);
                     }
 
                     title = testObject.Property("title").Value.ToString();
@@ -324,7 +324,7 @@ namespace TestRailResultExport
                     Test currentTest;
                     currentTest.SuiteID = suiteIDs[i];
                     currentTest.SuiteName = suiteName;
-                    currentTest.RunID = runIDs[i];
+                    currentTest.RunID = Int32.Parse(runIDs[i]);
                     currentTest.TestID = testID;
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
@@ -361,7 +361,7 @@ namespace TestRailResultExport
                     {
                         caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
                     }
-                    caseIDsInMilestone.Add(caseID.ToString());
+                    caseIDsInMilestone.Add(caseID);
 
 					title = testObject.Property("title").Value.ToString();
                     status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
@@ -442,7 +442,7 @@ namespace TestRailResultExport
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
                     currentTest.SuiteName = suiteName;
-                    currentTest.RunID = runInPlanIds[i];
+                    currentTest.RunID = Int32.Parse(runInPlanIds[i]);
                     currentTest.TestID = testID;
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
@@ -488,7 +488,7 @@ namespace TestRailResultExport
 
 
 
-                allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
+                allCaseIDs.Add(Int32.Parse(arrayObject.Property("id").Value.ToString()));
 
                 //JObject suite = (JObject)client.SendGet($"get_suite/" + arrayObject.Property("suite_id").Value.ToString());
                 //string suiteName = suite.Property("name").Value.ToString();
@@ -502,7 +502,7 @@ namespace TestRailResultExport
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                newCase.CaseID = caseID;
+                newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
                 newCase.Type = StringManipulation.GetCaseType(caseType);
@@ -525,7 +525,7 @@ namespace TestRailResultExport
             {
                 JObject arrayObject = casesArray[i].ToObject<JObject>();
 
-                allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
+                allCaseIDs.Add(Int32.Parse(arrayObject.Property("id").Value.ToString()));
 
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
@@ -534,7 +534,7 @@ namespace TestRailResultExport
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                newCase.CaseID = caseID;
+                newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
                 newCase.Type = StringManipulation.GetCaseType(caseType);
@@ -554,7 +554,7 @@ namespace TestRailResultExport
             for (int i = 0; i < sortedList.Count; i++)
             {
                 Test testObject = sortedList[i];
-                Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID.ToString()); //finding the case that matches the test
+                Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID); //finding the case that matches the test
                 if (i != 0)
                 {
                     if (testObject.CaseID != 0)
@@ -651,24 +651,5 @@ namespace TestRailResultExport
             List<Case> sortedList = listOfCases.OrderBy(o => o.CaseID).ToList();
             return sortedList;
         }
-
-        //private static string CreateCsvOfCasesOld(JArray casesArray, string suiteName)
-        //{
-        //    StringBuilder csv = new StringBuilder();
-
-        //    string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", "Case ID", "Suite ID", "Title", "References", "Case Status", "Steps", "Steps_Separated", "\n");
-        //    csv.Append(header);
-
-        //    for (int i = 0; i < casesArray.Count; i++)
-        //    {
-        //        JObject arrayObject = casesArray[i].ToObject<JObject>();
-        //        allCaseIDs.Add(arrayObject.Property("id").Value.ToString());
-
-        //        string newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7}", arrayObject.Property("id").Value, arrayObject.Property("suite_id").Value, "\"" + arrayObject.Property("title").Value + "\"", "\"" + arrayObject.Property("refs").Value + "\"", StringManipulation.IsInvalid(arrayObject), StringManipulation.HasSteps(arrayObject), StringManipulation.HasStepsSeparated(arrayObject), "\n");
-        //        csv.Append(newLine);
-        //    }
-
-        //    return csv.ToString();
-        //}
 	}
 }
