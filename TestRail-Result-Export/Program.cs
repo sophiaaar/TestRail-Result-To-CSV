@@ -411,9 +411,9 @@ namespace TestRailResultExport
                     }
 
                     // Find config for runID
-                    Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
-                    string config = currentRun.Config;
-                    string runID = currentRun.RunID;
+                    //Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
+                    //string config = currentRun.Config;
+                    //string runID = currentRun.RunID;
 
                     if (comment.Length > 99)
                     {
@@ -443,7 +443,7 @@ namespace TestRailResultExport
                     currentTest.Status = status;
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
-                    currentTest.Config = config;
+                    currentTest.Config = "";
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
 					listOfTests.Add(currentTest);
