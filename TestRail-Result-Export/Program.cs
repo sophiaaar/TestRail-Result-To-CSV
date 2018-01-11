@@ -451,7 +451,7 @@ namespace TestRailResultExport
 			}
             List<Test> sortedList = SortListOfTests(listOfTests);
 
-            Console.WriteLine("Number Passed, Number Failed, Number Blocked,\n");
+            Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
             Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
 
             string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
@@ -534,7 +534,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},", "Suite Name", "Title", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Suite Name", "Title", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -545,15 +545,49 @@ namespace TestRailResultExport
 
                 if (testObject.CaseID != 0)
                 {
-                    // check if the case_id is the same as the one above it
-                    if (testObject.CaseID == sortedList[i - 1].CaseID)
+                    if (i != 0)
                     {
-                        count++;
-                        if (count < previousResults)
+                        // check if the case_id is the same as the one above it
+                        if (testObject.CaseID == sortedList[i - 1].CaseID)
                         {
-                            string passRate = "";
-                            string line = string.Format("{0},", testObject.Status);
-                            // 2) add the status to the same list
+                            count++;
+                            if (count < previousResults)
+                            {
+                                string passRate = "";
+                                string line = string.Format("{0},", testObject.Status);
+                                // 2) add the status to the same list
+                                if (testObject.Status == "Passed")
+                                {
+                                    passValues.Add(100);
+                                }
+                                else
+                                {
+                                    passValues.Add(0);
+                                }
+
+                                csv.Append(line);
+                                // if (count-1)=previousResults, calculate pass rate using the small list of pass values
+                                if (count == (previousResults - 1))
+                                {
+                                    // eg sum(passvalues) / previousResults
+                                    int sumOfValues = passValues.Sum();
+                                    passRate = (sumOfValues / previousResults).ToString();
+                                    csv.Append(string.Format("{0},", passRate + "%"));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Some values get reset here because this is a brand new line and a new case
+                            passValues.Clear();
+                            count = 0;
+                            if (i != 0)
+                            {
+                                csv.Append("\n"); //removes the blank row between the headings and the first result
+                            }
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            // 1) add the status to a list?
+                            // if its a pass, value is 100
                             if (testObject.Status == "Passed")
                             {
                                 passValues.Add(100);
@@ -562,16 +596,8 @@ namespace TestRailResultExport
                             {
                                 passValues.Add(0);
                             }
-
                             csv.Append(line);
-                            // if (count-1)=previousResults, calculate pass rate using the small list of pass values
-                            if (count == (previousResults - 1))
-                            {
-                                // eg sum(passvalues) / previousResults
-                                int sumOfValues = passValues.Sum();
-                                passRate = (sumOfValues / previousResults).ToString();
-                                csv.Append(string.Format("{0},", passRate + "%"));
-                            }
+
                         }
                     }
                     else
@@ -595,7 +621,6 @@ namespace TestRailResultExport
                             passValues.Add(0);
                         }
                         csv.Append(line);
-
                     }
                 }
 
@@ -656,13 +681,14 @@ namespace TestRailResultExport
         /// </summary>
         private static List<Test> SortListOfTests(List<Test> listOfTests)
         {
-            List<Test> sortedList = listOfTests.OrderBy(o => o.CaseID).ThenByDescending(o=>o.RunID).ToList();
+            //List<Test> sortedList = listOfTests.OrderByDescending(o => o.CaseID).ThenByDescending(o=>o.RunID).ToList();
+            List<Test> sortedList = listOfTests.OrderBy(o => o.SuiteName).ThenBy(o => o.CaseID).ToList();
             return sortedList;
         }
 
         private static List<Case> SortListOfCases(List<Case> listOfCases)
         {
-            List<Case> sortedList = listOfCases.OrderBy(o => o.CaseID).ToList();
+            List<Case> sortedList = listOfCases.OrderByDescending(o => o.CaseID).ToList();
             return sortedList;
         }
 	}
