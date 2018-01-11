@@ -542,51 +542,18 @@ namespace TestRailResultExport
             {
                 Test testObject = sortedList[i];
                 Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID); //finding the case that matches the test
-                if (i != 0)
-                {
-                    if (testObject.CaseID != 0)
-                    {
-						// check if the case_id is the same as the one above it
-						if (testObject.CaseID == sortedList[i - 1].CaseID)
-						{
-							count++;
-							if (count < previousResults)
-							{
-                                string passRate = "";
-								string line = string.Format("{0},", testObject.Status);
-                                // 2) add the status to the same list
-                                if (testObject.Status == "Passed")
-                                {
-                                    passValues.Add(100);
-                                }
-                                else
-                                {
-                                    passValues.Add(0);
-                                }
 
-                                csv.Append(line);
-                                // if (count-1)=previousResults, calculate pass rate using the small list of pass values
-                                if (count == (previousResults - 1))
-                                {
-                                    // eg sum(passvalues) / previousResults
-                                    int sumOfValues = passValues.Sum();
-                                    passRate = (sumOfValues / previousResults).ToString();
-                                    csv.Append(string.Format("{0},", passRate + "%"));
-                                }
-							}
-						}
-						else
-						{
-                            // Some values get reset here because this is a brand new line and a new case
-                            passValues.Clear();
-							count = 0;
-                            if (i != 1)
-                            {
-                                csv.Append("\n"); //removes the blank row between the headings and the first result
-                            }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-                            // 1) add the status to a list?
-                            // if its a pass, value is 100
+                if (testObject.CaseID != 0)
+                {
+                    // check if the case_id is the same as the one above it
+                    if (testObject.CaseID == sortedList[i - 1].CaseID)
+                    {
+                        count++;
+                        if (count < previousResults)
+                        {
+                            string passRate = "";
+                            string line = string.Format("{0},", testObject.Status);
+                            // 2) add the status to the same list
                             if (testObject.Status == "Passed")
                             {
                                 passValues.Add(100);
@@ -595,34 +562,71 @@ namespace TestRailResultExport
                             {
                                 passValues.Add(0);
                             }
-							csv.Append(line);
 
-						}
-					}
+                            csv.Append(line);
+                            // if (count-1)=previousResults, calculate pass rate using the small list of pass values
+                            if (count == (previousResults - 1))
+                            {
+                                // eg sum(passvalues) / previousResults
+                                int sumOfValues = passValues.Sum();
+                                passRate = (sumOfValues / previousResults).ToString();
+                                csv.Append(string.Format("{0},", passRate + "%"));
+                            }
+                        }
+                    }
                     else
                     {
-                        //// Some values get reset here because this is a brand new line and a new case
-                        //passValues.Clear();
-                        //count = 0;
-                        //if (i != 1)
-                        //{
-                        //    csv.Append("\n"); //removes the blank row between the headings and the first result
-                        //}
-                        //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-                        //// 1) add the status to a list?
-                        //// if its a pass, value is 100
-                        //if (testObject.Status == "Passed")
-                        //{
-                        //    passValues.Add(100);
-                        //}
-                        //else
-                        //{
-                        //    passValues.Add(0);
-                        //}
-                        //csv.Append(line);
-                    }
+                        // Some values get reset here because this is a brand new line and a new case
+                        passValues.Clear();
+                        count = 0;
+                        if (i != 0)
+                        {
+                            csv.Append("\n"); //removes the blank row between the headings and the first result
+                        }
+                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        // 1) add the status to a list?
+                        // if its a pass, value is 100
+                        if (testObject.Status == "Passed")
+                        {
+                            passValues.Add(100);
+                        }
+                        else
+                        {
+                            passValues.Add(0);
+                        }
+                        csv.Append(line);
 
-				}
+                    }
+                }
+
+    //            if (i != 0)
+    //            {
+                    
+
+
+				//}
+                //else
+                //{
+                //    //// Some values get reset here because this is a brand new line and a new case
+                //    //passValues.Clear();
+                //    //count = 0;
+                //    //if (i != 1)
+                //    //{
+                //    //    csv.Append("\n"); //removes the blank row between the headings and the first result
+                //    //}
+                //    //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                //    //// 1) add the status to a list?
+                //    //// if its a pass, value is 100
+                //    //if (testObject.Status == "Passed")
+                //    //{
+                //    //    passValues.Add(100);
+                //    //}
+                //    //else
+                //    //{
+                //    //    passValues.Add(0);
+                //    //}
+                //    //csv.Append(line);
+                //}
 			}
             csv.Append("\n");
             csv.Append("\n");
