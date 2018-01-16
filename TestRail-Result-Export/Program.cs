@@ -548,7 +548,7 @@ namespace TestRailResultExport
                     if (i != 0)
                     {
                         // check if the case_id is the same as the one above it
-                        if (testObject.CaseID == sortedList[i - 1].CaseID)
+                        if (testObject.CaseID == sortedList[i - 1].CaseID && testObject.Config == sortedList[i - 1].Config)
                         {
                             count++;
                             if (count < previousResults)
