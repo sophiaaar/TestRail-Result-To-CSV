@@ -296,9 +296,11 @@ namespace TestRailResultExport
                         editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
                     }
 
-                    // Find config for runID
-                    string runID = runs[i].RunID;
-                    string config = runs[i].Config;
+
+                    //string runID = runIDs[i];
+
+                    //Run currentRun = runs.Find(r => r.RunID == runID);
+                    //string config = currentRun.Config;
 
                     //append to csv at this point?
 
@@ -330,7 +332,7 @@ namespace TestRailResultExport
                     currentTest.Status = status;
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
-                    currentTest.Config = config;
+                    currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
 					listOfTests.Add(currentTest);
@@ -548,6 +550,11 @@ namespace TestRailResultExport
                 Test testObject = sortedList[i];
                 Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID); //finding the case that matches the test
 
+                if (testObject.SuiteName == "PS4")
+                {
+                    string config = testObject.Config;
+                }
+
                 if (testObject.CaseID != 0)
                 {
                     if (i != 0)
@@ -614,7 +621,7 @@ namespace TestRailResultExport
                         {
                             csv.Append("\n"); //removes the blank row between the headings and the first result
                         }
-                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                         // 1) add the status to a list?
                         // if its a pass, value is 100
                         if (testObject.Status == "Passed")
@@ -629,34 +636,6 @@ namespace TestRailResultExport
                     }
                 }
 
-    //            if (i != 0)
-    //            {
-                    
-
-
-				//}
-                //else
-                //{
-                //    //// Some values get reset here because this is a brand new line and a new case
-                //    //passValues.Clear();
-                //    //count = 0;
-                //    //if (i != 1)
-                //    //{
-                //    //    csv.Append("\n"); //removes the blank row between the headings and the first result
-                //    //}
-                //    //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-                //    //// 1) add the status to a list?
-                //    //// if its a pass, value is 100
-                //    //if (testObject.Status == "Passed")
-                //    //{
-                //    //    passValues.Add(100);
-                //    //}
-                //    //else
-                //    //{
-                //    //    passValues.Add(0);
-                //    //}
-                //    //csv.Append(line);
-                //}
 			}
             csv.Append("\n");
             csv.Append("\n");
