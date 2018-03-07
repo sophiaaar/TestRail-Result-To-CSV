@@ -51,6 +51,7 @@ namespace TestRailResultExport
             public string CaseName;
             public string Status;
             public string Type;
+            public string TemplateStatus;
         }
 
         public struct Suite
@@ -210,7 +211,7 @@ namespace TestRailResultExport
 
 			try
 			{
-                ostrm = new FileStream("Tests"+ milestoneID + "-"+ DateTime.UtcNow.ToLongDateString() +".csv", FileMode.OpenOrCreate, FileAccess.Write);
+                ostrm = new FileStream("Tests"+ DateTime.UtcNow.ToLongDateString() +".csv", FileMode.OpenOrCreate, FileAccess.Write);
 				writer = new StreamWriter(ostrm);
 			}
 			catch (Exception e)
@@ -295,9 +296,11 @@ namespace TestRailResultExport
                         editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
                     }
 
-                    // Find config for runID
-                    string runID = runs[i].RunID;
-                    string config = runs[i].Config;
+
+                    //string runID = runIDs[i];
+
+                    //Run currentRun = runs.Find(r => r.RunID == runID);
+                    //string config = currentRun.Config;
 
                     //append to csv at this point?
 
@@ -329,7 +332,7 @@ namespace TestRailResultExport
                     currentTest.Status = status;
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
-                    currentTest.Config = config;
+                    currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
 					listOfTests.Add(currentTest);
@@ -416,7 +419,7 @@ namespace TestRailResultExport
                     if (config.Contains(','))
                     {
                         int index = config.IndexOf(',');
-                        config = config.Substring(0, index);
+                        config = config.Substring(0, index -1);
                     }
 
                     if (comment.Length > 99)
@@ -492,6 +495,7 @@ namespace TestRailResultExport
                 string suiteID = arrayObject.Property("suite_id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
                 string caseType = arrayObject.Property("type_id").Value.ToString();
+                string templateStatus = arrayObject.Property("custom_case_status").Value.ToString();
 
                 Case newCase;
                 newCase.SuiteID = suiteID;
@@ -500,6 +504,7 @@ namespace TestRailResultExport
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
                 newCase.Type = StringManipulation.GetCaseType(caseType);
+                newCase.TemplateStatus = templateStatus;
 
 
                 listOfCases.Add(newCase);
@@ -522,6 +527,7 @@ namespace TestRailResultExport
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
                 string caseType = arrayObject.Property("type_id").Value.ToString();
+                string templateStatus = arrayObject.Property("custom_case_status").Value.ToString();
 
                 Case newCase;
                 newCase.SuiteID = suiteID;
@@ -530,6 +536,7 @@ namespace TestRailResultExport
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
                 newCase.Type = StringManipulation.GetCaseType(caseType);
+                newCase.TemplateStatus = templateStatus;
 
                 listOfCases.Add(newCase);
             }
@@ -539,7 +546,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
 			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Suite Name", "Title", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Suite Name", "Title", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -547,6 +554,11 @@ namespace TestRailResultExport
             {
                 Test testObject = sortedList[i];
                 Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID); //finding the case that matches the test
+
+                if (testObject.SuiteName == "PS4")
+                {
+                    string config = testObject.Config;
+                }
 
                 if (testObject.CaseID != 0)
                 {
@@ -590,7 +602,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                             // 1) add the status to a list?
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -614,7 +626,7 @@ namespace TestRailResultExport
                         {
                             csv.Append("\n"); //removes the blank row between the headings and the first result
                         }
-                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
                         // 1) add the status to a list?
                         // if its a pass, value is 100
                         if (testObject.Status == "Passed")
@@ -629,34 +641,6 @@ namespace TestRailResultExport
                     }
                 }
 
-    //            if (i != 0)
-    //            {
-                    
-
-
-				//}
-                //else
-                //{
-                //    //// Some values get reset here because this is a brand new line and a new case
-                //    //passValues.Clear();
-                //    //count = 0;
-                //    //if (i != 1)
-                //    //{
-                //    //    csv.Append("\n"); //removes the blank row between the headings and the first result
-                //    //}
-                //    //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-                //    //// 1) add the status to a list?
-                //    //// if its a pass, value is 100
-                //    //if (testObject.Status == "Passed")
-                //    //{
-                //    //    passValues.Add(100);
-                //    //}
-                //    //else
-                //    //{
-                //    //    passValues.Add(0);
-                //    //}
-                //    //csv.Append(line);
-                //}
 			}
             csv.Append("\n");
             csv.Append("\n");

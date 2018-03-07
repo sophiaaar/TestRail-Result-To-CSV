@@ -67,6 +67,30 @@ namespace TestRailResultExport
             }
         }
 
+        /// <summary>
+        /// Converts the status number to a string
+        /// </summary>
+        /// <returns>The status.</returns>
+        /// <param name="rawValue">Raw value.</param>
+        public static string GetTemplateStatus(string rawValue)
+        {
+            switch (rawValue)
+            {
+                case "1":
+                    return "Draft";
+                case "2":
+                    return "Active";
+                case "3":
+                    return "Needs Improvement";
+                case "4":
+                    return "Sustained Engineering";
+                case "5":
+                    return "Retired";
+                default:
+                    return "Other";
+            }
+        }
+
         public static string GetCaseType(string rawValue)
         {
             switch (rawValue)
