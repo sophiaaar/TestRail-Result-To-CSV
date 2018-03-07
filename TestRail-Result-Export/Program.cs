@@ -22,6 +22,7 @@ namespace TestRailResultExport
         public static List<int> allCaseIDs = new List<int>();
         public static List<int> caseIDsInMilestone = new List<int>(); //case IDs that have been run
         public static List<string> configs = new List<string>();
+        public static List<Run> runConfigs = new List<Run>();
 
         public static int numberPassed;
         public static int numberFailed;
@@ -424,6 +425,7 @@ namespace TestRailResultExport
                     }
 
                     configs.Add(config);
+                    runConfigs.Add(currentRun);
 
                     if (comment.Length > 99)
                     {
@@ -464,6 +466,17 @@ namespace TestRailResultExport
 
             Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
             Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
+
+            configs.Count(); 
+
+            var query = runConfigs.SelectMany(x => x.Config).GroupBy(s => s).Select(g => new { Name = g.Key, Count = g.Count() });
+
+            foreach (var result in query)
+            {
+                Console.WriteLine("Config: {0}, Count: {1}", result.Name, result.Count);
+            }
+
+            Console.WriteLine("\n, \n");
 
             string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
             Console.WriteLine(csvOfTests);
