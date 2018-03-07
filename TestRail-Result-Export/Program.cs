@@ -424,7 +424,9 @@ namespace TestRailResultExport
                         config = config.Substring(0, index);
                     }
 
-                    configs.Add(config);
+                    currentRun.Config = config;
+
+                    //configs.Add(config);
                     runConfigs.Add(currentRun);
 
                     if (comment.Length > 99)
@@ -467,13 +469,15 @@ namespace TestRailResultExport
             Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
             Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
 
-            configs.Count(); 
+            //configs.Count(); 
 
-            var query = runConfigs.SelectMany(x => x.Config).GroupBy(s => s).Select(g => new { Name = g.Key, Count = g.Count() });
+            var blah = runConfigs.GroupBy(o => o.Config);
 
-            foreach (var result in query)
+            foreach (var bla in blah)
             {
-                Console.WriteLine("Config: {0}, Count: {1}", result.Name, result.Count);
+                string configName = bla.Key.ToString();
+                string count = bla.Count<Run>().ToString();
+                Console.WriteLine("Config: {0}, Count: {1}", configName, count);
             }
 
             Console.WriteLine("\n, \n");
@@ -483,8 +487,6 @@ namespace TestRailResultExport
 
             //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults);
 
-
-			Console.SetOut(oldOut);
 			writer.Close();
 			ostrm.Close();
 			Console.WriteLine("Done");
