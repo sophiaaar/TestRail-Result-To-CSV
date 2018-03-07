@@ -487,6 +487,7 @@ namespace TestRailResultExport
 
             //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults);
 
+            Console.SetOut(oldOut);
 			writer.Close();
 			ostrm.Close();
 			Console.WriteLine("Done");
