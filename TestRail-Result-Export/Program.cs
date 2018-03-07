@@ -408,6 +408,11 @@ namespace TestRailResultExport
                     string config = currentRun.Config;
                     string runID = currentRun.RunID;
 
+                    if (config.Contains('"'))
+                    {
+                        config = config.Replace('"', ' ');
+                    }
+
                     if (config.Contains(','))
                     {
                         int index = config.IndexOf(',');
@@ -682,7 +687,7 @@ namespace TestRailResultExport
         private static List<Test> SortListOfTests(List<Test> listOfTests)
         {
             //List<Test> sortedList = listOfTests.OrderByDescending(o => o.CaseID).ThenByDescending(o=>o.RunID).ToList();
-            List<Test> sortedList = listOfTests.OrderBy(o => o.SuiteName).ThenBy(o => o.CaseID).ToList();
+            List<Test> sortedList = listOfTests.OrderBy(o => o.SuiteName).ThenBy(o => o.CaseID).ThenBy(o => o.Config).ToList();
             return sortedList;
         }
 
