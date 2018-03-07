@@ -21,6 +21,7 @@ namespace TestRailResultExport
         public static List<Run> runs = new List<Run>();
         public static List<int> allCaseIDs = new List<int>();
         public static List<int> caseIDsInMilestone = new List<int>(); //case IDs that have been run
+        public static List<string> configs = new List<string>();
 
         public static int numberPassed;
         public static int numberFailed;
@@ -419,8 +420,10 @@ namespace TestRailResultExport
                     if (config.Contains(','))
                     {
                         int index = config.IndexOf(',');
-                        config = config.Substring(0, index -1);
+                        config = config.Substring(0, index);
                     }
+
+                    configs.Add(config);
 
                     if (comment.Length > 99)
                     {
