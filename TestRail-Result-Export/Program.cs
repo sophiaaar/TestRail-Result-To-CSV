@@ -471,12 +471,12 @@ namespace TestRailResultExport
 
             //configs.Count(); 
 
-            var blah = runConfigs.GroupBy(o => o.Config);
+            var grouping = runConfigs.GroupBy(o => o.Config);
 
-            foreach (var bla in blah)
+            foreach (var configGroup in grouping)
             {
-                string configName = bla.Key.ToString();
-                string count = bla.Count<Run>().ToString();
+                string configName = configGroup.Key.ToString();
+                string count = configGroup.Count<Run>().ToString();
                 Console.WriteLine("Config: {0}, Count: {1}", configName, count);
             }
 
