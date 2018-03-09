@@ -69,6 +69,7 @@ namespace TestRailResultExport
             data.Add(valueRange);
 
             Data.BatchUpdateValuesRequest requestBodyUpdate = new Data.BatchUpdateValuesRequest();
+
             requestBodyUpdate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW.ToString();
             requestBodyUpdate.Data = data;
 
@@ -252,7 +253,7 @@ namespace TestRailResultExport
                     if (i != 0)
                     {
                         // check if the case_id is the same as the one above it
-                        if (testObject.CaseID == sortedList[i - 1].CaseID && testObject.Config == sortedList[i - 1].Config)
+                        if (testObject.CaseID == sortedList[i - 1].CaseID)
                         {
                             count++;
                             if (count < previousResults)
@@ -300,7 +301,7 @@ namespace TestRailResultExport
                             }
 
                             //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-                            List<object> line = new List<object>() { testObject.SuiteName, testObject.Title, testObject.Config, testObject.EditorVersion, testObject.Defects, testObject.Comment, testObject.Status };
+                            List<object> line = new List<object>() { testObject.SuiteName, testObject.Title, testObject.Status };
 
 
 
@@ -331,7 +332,7 @@ namespace TestRailResultExport
                         }
 
                         //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-                        List<object> line = new List<object>() { testObject.SuiteName, testObject.Title, testObject.Config, testObject.EditorVersion, testObject.Defects, testObject.Comment, testObject.Status };
+                        List<object> line = new List<object>() { testObject.SuiteName, testObject.Title, testObject.Status };
 
 
 
@@ -353,8 +354,35 @@ namespace TestRailResultExport
             //return csv.ToString();
         }
 
-        public static void WriteToSheet(SheetsService service, string spreadsheetID, string spreadsheetURL)
+        public static void UploadCsvToSheet(SheetsService service, string csv, string spreadsheetId)
+        {
+            //SheetsService service = ConnectToGoogleSheets();
+            int rowNum = 1;
+            ValueRange valueRange = new ValueRange();
+
+            string range = "A" + rowNum + ":Z" + rowNum;
+            valueRange.Range = range;
+
+
+            PasteDataRequest pasteDataRequest = new PasteDataRequest();
+            pasteDataRequest.Data = csv;
+            pasteDataRequest.Coordinate = new GridCoordinate();
+            //pasteDataRequest.Type = pas
+
+
+            Request request = new Request();
+            request.PasteData = pasteDataRequest;
+
+            //SpreadsheetsResource.CreateRequest req = service.Spreadsheets.Values.BatchUpdate(pasteDataRequest, spreadsheetId);
+
+            //SpreadsheetsResource.BatchUpdateRequest req = service.Spreadsheets.BatchUpdate(request.)
+            
+        }
+
+        public static void WriteToSheet(List<object> oblist)
 		{
+            SheetsService service = ConnectToGoogleSheets();
+
 			// The new values to apply to the spreadsheet.
 			List<ValueRange> data = new List<ValueRange>();
 
@@ -363,7 +391,7 @@ namespace TestRailResultExport
 			valueRange.MajorDimension = "COLUMNS";//"ROWS";//COLUMNS
 			valueRange.Range = range;
 
-			var oblist = new List<object>() { "My Cell Text", "test", "another test" }; //treat each row of the csv as an object?
+            //List<object> oblist = new List<object>(); //treat each row of the csv as an object?
 			valueRange.Values = new List<IList<object>> { oblist };
 
 			data.Add(valueRange);
@@ -372,12 +400,12 @@ namespace TestRailResultExport
 			requestBodyUpdate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW.ToString();
 			requestBodyUpdate.Data = data;
 
-			SpreadsheetsResource.ValuesResource.BatchUpdateRequest request = service.Spreadsheets.Values.BatchUpdate(requestBodyUpdate, spreadsheetID);
+            SpreadsheetsResource.ValuesResource.BatchUpdateRequest request = service.Spreadsheets.Values.BatchUpdate(requestBodyUpdate, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
 
 			// To execute asynchronously in an async method, replace `request.Execute()` as shown:
 			Data.BatchUpdateValuesResponse responseUpdate = request.Execute();
 
-			Console.WriteLine(spreadsheetURL);
+			//Console.WriteLine(spreadsheetURL);
 		}
 	}
 }
