@@ -222,6 +222,137 @@ namespace TestRailResultExport
 			//return csv.ToString();
 		}
 
+
+        public static void OutputTestsToGoogleSheets_Light(List<MainClass.Test> sortedList, int previousResults)
+        {
+            SheetsService service = ConnectToGoogleSheets();
+            // The new values to apply to the spreadsheet.
+            List<ValueRange> data = new List<ValueRange>();
+
+            int rowNum = 1;
+
+            ValueRange valueRange = new ValueRange();
+
+            int count = 0;
+            List<int> passValues = new List<int>();
+
+            for (int i = 0; i < sortedList.Count; i++)
+            {
+                rowNum++;
+                string range = "A" + rowNum + ":Z" + rowNum;
+                valueRange.Range = range;
+
+                //MainClass.Test arrayObject = sortedList[i];
+
+                MainClass.Test testObject = sortedList[i];
+                //MainClass.Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID);
+
+                if (testObject.CaseID != 0)
+                {
+                    if (i != 0)
+                    {
+                        // check if the case_id is the same as the one above it
+                        if (testObject.CaseID == sortedList[i - 1].CaseID && testObject.Config == sortedList[i - 1].Config)
+                        {
+                            count++;
+                            if (count < previousResults)
+                            {
+
+                                string passRate = "";
+                                //string line = string.Format("{0},", testObject.Status);
+                                List<object> line = new List<object>() { testObject.Status };
+                                // 2) add the status to the same list
+                                if (testObject.Status == "Passed")
+                                {
+                                    passValues.Add(100);
+                                }
+                                else
+                                {
+                                    passValues.Add(0);
+                                }
+
+                                //csv.Append(line);
+                                AppendToRow(service, valueRange, data, line, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
+                                // if (count-1)=previousResults, calculate pass rate using the small list of pass values
+                                if (count == (previousResults - 1))
+                                {
+                                    // eg sum(passvalues) / previousResults
+                                    int sumOfValues = passValues.Sum();
+                                    passRate = (sumOfValues / previousResults).ToString();
+                                    //csv.Append(string.Format("{0},", passRate + "%"));
+                                    List<object> appendedRowInGoogleSheet = new List<object>() { passRate + "%" };
+
+                                    AppendToRow(service, valueRange, data, appendedRowInGoogleSheet, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Some values get reset here because this is a brand new line and a new case
+                            passValues.Clear();
+                            count = 0;
+                            if (i != 0)
+                            {
+                                List<object> newLine = new List<object>() { "\n" };
+                                //csv.Append("\n"); 
+                                //removes the blank row between the headings and the first result
+                                AppendToRow(service, valueRange, data, newLine, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
+                            }
+
+                            //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            List<object> line = new List<object>() { testObject.SuiteName, testObject.Title, testObject.Config, testObject.EditorVersion, testObject.Defects, testObject.Comment, testObject.Status };
+
+
+
+                            // if its a pass, value is 100
+                            if (testObject.Status == "Passed")
+                            {
+                                passValues.Add(100);
+                            }
+                            else
+                            {
+                                passValues.Add(0);
+                            }
+                            //csv.Append(line);
+                            AppendToRow(service, valueRange, data, line, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
+                        }
+                    }
+                    else
+                    {
+                        // Some values get reset here because this is a brand new line and a new case
+                        passValues.Clear();
+                        count = 0;
+                        if (i != 0)
+                        {
+                            List<object> newLine = new List<object>() { "\n" };
+                            //csv.Append("\n"); 
+                            //removes the blank row between the headings and the first result
+                            AppendToRow(service, valueRange, data, newLine, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
+                        }
+
+                        //string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        List<object> line = new List<object>() { testObject.SuiteName, testObject.Title, testObject.Config, testObject.EditorVersion, testObject.Defects, testObject.Comment, testObject.Status };
+
+
+
+                        // if its a pass, value is 100
+                        if (testObject.Status == "Passed")
+                        {
+                            passValues.Add(100);
+                        }
+                        else
+                        {
+                            passValues.Add(0);
+                        }
+                        //csv.Append(line);
+                        AppendToRow(service, valueRange, data, line, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA");
+                    }
+                }
+            }
+
+            //return csv.ToString();
+        }
+
         public static void WriteToSheet(SheetsService service, string spreadsheetID, string spreadsheetURL)
 		{
 			// The new values to apply to the spreadsheet.

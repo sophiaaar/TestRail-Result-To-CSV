@@ -105,7 +105,7 @@ namespace TestRailResultExport
                 Console.WriteLine("How many previous results do you want to see?");
                 int previousResults = Int32.Parse(Console.ReadLine());
 
-                GetAllTests(client, previousResults);
+                GetAllTests_Light(client, previousResults); //TODO change back to original method
             }
             else
             {
@@ -500,6 +500,211 @@ namespace TestRailResultExport
 			Console.WriteLine("Done");
 		}
 
+        /// <summary>
+        /// Retrieves TestRail tests (both in and out of plans)
+        /// </summary>
+        /// <param name="previousResults">Number of previous results to include.</param>
+        private static void GetAllTests_Light(APIClient client, int previousResults)
+        {
+            Console.WriteLine("Enter milestone ID: ");
+            milestoneID = Console.ReadLine();
+
+            //JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
+            JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
+            //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
+
+            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runs);
+
+            //List<Case> listOfCases = new List<Case>();
+            List<Test> listOfTests = new List<Test>();
+            List<Suite> listOfSuites = new List<Suite>();
+
+            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
+
+            for (int i = 0; i < suitesArray.Count; i++)
+            {
+                JObject arrayObject = suitesArray[i].ToObject<JObject>();
+                string id = arrayObject.Property("id").Value.ToString();
+                string suiteName = arrayObject.Property("name").Value.ToString(); //create list of suiteNames to use later
+
+                Suite newSuite;
+                newSuite.SuiteID = id;
+                newSuite.SuiteName = suiteName;
+                listOfSuites.Add(newSuite);
+
+
+                JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
+                //listOfCases = CreateListOfCases(casesArray, listOfCases, id, suiteName);
+            }
+
+            FileStream ostrm;
+            StreamWriter writer;
+            TextWriter oldOut = Console.Out;
+
+            try
+            {
+                ostrm = new FileStream("Tests" + DateTime.UtcNow.ToLongDateString() + ".csv", FileMode.OpenOrCreate, FileAccess.Write);
+                writer = new StreamWriter(ostrm);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Cannot open Tests.csv for writing");
+                Console.WriteLine(e.Message);
+                return;
+            }
+            Console.SetOut(writer);
+
+            for (int i = 0; i < runInPlanIds.Count; i++)
+            {
+                JArray testsArray = AccessTestRail.GetTestsInRun(client, runInPlanIds[i]);
+
+                string testID = "";
+                int caseID = 0;
+                string title = "";
+                string status = "";
+
+                for (int j = 0; j < testsArray.Count; j++)
+                {
+                    JObject testObject = testsArray[j].ToObject<JObject>();
+
+                    testID = testObject.Property("id").Value.ToString();
+
+                    if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
+                    {
+                        caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
+                    }
+                    caseIDsInMilestone.Add(caseID);
+
+                    title = testObject.Property("title").Value.ToString();
+                    status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
+
+                    if (status == "Passed")
+                    {
+                        numberPassed++;
+                    }
+                    else if (status == "Failed")
+                    {
+                        numberFailed++;
+                    }
+                    else if (status == "Blocked")
+                    {
+                        numberBlocked++;
+                    }
+
+                    string suiteName = "";
+
+                    // Some suites have been deleted, but the tests and runs remain
+                    if (suiteInPlanIDs[i] != "0")
+                    {
+                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteInPlanIDs[i]);
+                        suiteName = currentSuite.SuiteName;
+                    }
+                    else
+                    {
+                        suiteName = "deleted";
+                    }
+
+                    //// Get the most recent defects/bugs and comments on the test
+                    //string defects = "";
+                    //string comment = "";
+                    //string editorVersion = "";
+
+                    //JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
+
+                    //for (int k = 0; k < resultsOfLatestTest.Count; k++)
+                    //{
+                    //    JObject resultObject = resultsOfLatestTest[k].ToObject<JObject>();
+
+                    //    defects = resultObject.Property("defects").Value.ToString();
+                    //    comment = resultObject.Property("comment").Value.ToString();
+                    //    editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
+                    //}
+
+                    // Find config for runID
+                    //Run currentRun = runs.Find(o => o.RunID == runInPlanIds[i]);
+                    //string config = currentRun.Config;
+                    //string runID = currentRun.RunID;
+
+                    //if (config.Contains('"'))
+                    //{
+                    //    config = config.Replace('"', ' ');
+                    //}
+
+                    //if (config.Contains(','))
+                    //{
+                    //    int index = config.IndexOf(',');
+                    //    config = config.Substring(0, index);
+                    //}
+
+                    //currentRun.Config = config;
+
+                    //configs.Add(config);
+                    //runConfigs.Add(currentRun);
+
+                    //if (comment.Length > 99)
+                    //{
+                    //    comment = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(comment.Substring(0, 100)));
+                    //}
+
+                    //if (comment.Contains('"'))
+                    //{
+                    //    comment = comment.Replace('"', ' ');
+                    //}
+                    //else if (comment.Contains(','))
+                    //{
+                    //    comment = comment.Replace(',', ' ');
+                    //}
+                    //else if (comment.Contains(Environment.NewLine))
+                    //{
+                    //    comment = comment.Replace(Environment.NewLine, " ");
+                    //}
+
+                    Test currentTest;
+                    currentTest.SuiteID = suiteInPlanIDs[i];
+                    currentTest.SuiteName = suiteName;
+                    currentTest.RunID = Int32.Parse(runInPlanIds[i]);
+                    currentTest.TestID = testID;
+                    currentTest.CaseID = caseID;
+                    currentTest.Title = title;
+                    currentTest.Status = status;
+                    currentTest.Defects = "";
+                    currentTest.Comment = "";
+                    currentTest.Config = "";
+                    currentTest.EditorVersion = "";
+
+                    listOfTests.Add(currentTest);
+                }
+
+            }
+            List<Test> sortedList = SortListOfTests(listOfTests);
+
+            Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
+            Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
+             
+
+            //var grouping = runConfigs.GroupBy(o => o.Config);
+
+            //foreach (var configGroup in grouping)
+            //{
+            //    string configName = configGroup.Key.ToString();
+            //    string count = configGroup.Count<Run>().ToString();
+            //    Console.WriteLine("Config: {0}, Count: {1}", configName, count);
+            //}
+
+
+            Console.WriteLine("\n, \n");
+
+            string csvOfTests = CreateCSVOfTests_Light(sortedList, previousResults);
+            Console.WriteLine(csvOfTests);
+
+            //GoogleSheets.OutputTestsToGoogleSheets_Light(sortedList, previousResults);
+
+            Console.SetOut(oldOut);
+            writer.Close();
+            ostrm.Close();
+            Console.WriteLine("Done");
+        }
+
         private static string CreateCsvOfCases(JArray casesArray, string suiteName)
 		{
 			StringBuilder csv = new StringBuilder();
@@ -686,6 +891,125 @@ namespace TestRailResultExport
 
 			return csv.ToString();
 		}
+
+        public static string CreateCSVOfTests_Light(List<Test> sortedList, int previousResults)
+        {
+            StringBuilder csv = new StringBuilder();
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", "Suite Name", "Title", "Config", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
+            csv.Append(header);
+            int count = 0;
+            List<int> passValues = new List<int>();
+            for (int i = 0; i < sortedList.Count; i++)
+            {
+                Test testObject = sortedList[i];
+                //Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID); //finding the case that matches the test
+
+
+                if (testObject.CaseID != 0)
+                {
+                    if (i != 0)
+                    {
+                        // check if the case_id is the same as the one above it
+                        if (testObject.CaseID == sortedList[i - 1].CaseID && testObject.Config == sortedList[i - 1].Config)
+                        {
+                            count++;
+                            if (count < previousResults)
+                            {
+                                string passRate = "";
+                                string line = string.Format("{0},", testObject.Status);
+                                // 2) add the status to the same list
+                                if (testObject.Status == "Passed")
+                                {
+                                    passValues.Add(100);
+                                }
+                                else
+                                {
+                                    passValues.Add(0);
+                                }
+
+                                csv.Append(line);
+                                // if (count-1)=previousResults, calculate pass rate using the small list of pass values
+                                if (count == (previousResults - 1))
+                                {
+                                    // eg sum(passvalues) / previousResults
+                                    int sumOfValues = passValues.Sum();
+                                    passRate = (sumOfValues / previousResults).ToString();
+                                    csv.Append(string.Format("{0},", passRate + "%"));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Some values get reset here because this is a brand new line and a new case
+                            passValues.Clear();
+                            count = 0;
+                            if (i != 0)
+                            {
+                                csv.Append("\n"); //removes the blank row between the headings and the first result
+                            }
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+
+                            // if its a pass, value is 100
+                            if (testObject.Status == "Passed")
+                            {
+                                passValues.Add(100);
+                            }
+                            else
+                            {
+                                passValues.Add(0);
+                            }
+                            csv.Append(line);
+
+                        }
+                    }
+                    else
+                    {
+                        // Some values get reset here because this is a brand new line and a new case
+                        passValues.Clear();
+                        count = 0;
+                        if (i != 0)
+                        {
+                            csv.Append("\n"); //removes the blank row between the headings and the first result
+                        }
+                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.Title + "\"", "\"" + testObject.Config + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+
+                        // if its a pass, value is 100
+                        if (testObject.Status == "Passed")
+                        {
+                            passValues.Add(100);
+                        }
+                        else
+                        {
+                            passValues.Add(0);
+                        }
+                        csv.Append(line);
+                    }
+                }
+
+            }
+            //csv.Append("\n");
+            //csv.Append("\n");
+
+            //for (int k = 0; k < allCaseIDs.Count; k++)
+            //{
+            //    if (!caseIDsInMilestone.Contains(allCaseIDs[k]))
+            //    {
+            //        List<Case> sortedListOfCases = SortListOfCases(listOfCases);
+
+            //        Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
+
+            //        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "\n");
+            //        csv.Append(line);
+            //    }
+            //    else
+            //    {
+            //        //do this whole section first?
+            //    }
+            //}
+            //TODO: find a "light" solution to this
+
+            return csv.ToString();
+        }
 
         /// <summary>
         /// Sorts the list of tests by case_id and then run_id
