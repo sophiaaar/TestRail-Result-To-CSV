@@ -9,6 +9,7 @@ using System.Linq;
 using System.Data;
 using System.Threading;
 using Google.Apis.Drive.v3;
+using Google.Apis.Sheets.v4;
 
 namespace TestRailResultExport
 {
@@ -73,13 +74,15 @@ namespace TestRailResultExport
 		{
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
-            //GoogleSheets.ConnectToGoogleSheets();
+            SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
 
             //EvaluateChoice(client);
 
             DriveService service = GoogleDrive.ConnectToGoogleDrive();
-            GoogleDrive.UploadCsvAsSpreadsheet(service);
-		}
+            //GoogleDrive.UploadCsvAsSpreadsheet(service);
+            GoogleDrive.CopyToSheet(sheetsService);
+
+        }
 
 		private static APIClient ConnectToTestrail()
 		{
