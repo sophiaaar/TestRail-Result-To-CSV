@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Data;
 using System.Threading;
+using Google.Apis.Drive.v3;
 
 namespace TestRailResultExport
 {
@@ -74,7 +75,10 @@ namespace TestRailResultExport
 			APIClient client = ConnectToTestrail();
             //GoogleSheets.ConnectToGoogleSheets();
 
-            EvaluateChoice(client);
+            //EvaluateChoice(client);
+
+            DriveService service = GoogleDrive.ConnectToGoogleDrive();
+            GoogleDrive.UploadCsvAsSpreadsheet(service);
 		}
 
 		private static APIClient ConnectToTestrail()
@@ -105,7 +109,8 @@ namespace TestRailResultExport
                 Console.WriteLine("How many previous results do you want to see?");
                 int previousResults = Int32.Parse(Console.ReadLine());
 
-                GetAllTests_Light(client, previousResults); //TODO change back to original method
+                //GetAllTests_Light(client, previousResults);
+                GetAllTests(client, previousResults);
             }
             else
             {
@@ -492,7 +497,7 @@ namespace TestRailResultExport
             string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
             Console.WriteLine(csvOfTests);
 
-            GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults, listOfCases);
+            //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults, listOfCases);
 
             Console.SetOut(oldOut);
 			writer.Close();
