@@ -75,11 +75,13 @@ namespace TestRailResultExport
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
             SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
+            DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
             //EvaluateChoice(client);
+            GetAllTests(client, 3, "96");
 
-            DriveService service = GoogleDrive.ConnectToGoogleDrive();
-            //GoogleDrive.UploadCsvAsSpreadsheet(service);
+            //DriveService service = GoogleDrive.ConnectToGoogleDrive();
+            GoogleDrive.UploadCsvAsSpreadsheet(service);
             GoogleDrive.CopyToSheet(sheetsService);
 
         }
@@ -113,7 +115,9 @@ namespace TestRailResultExport
                 int previousResults = Int32.Parse(Console.ReadLine());
 
                 //GetAllTests_Light(client, previousResults);
-                GetAllTests(client, previousResults);
+                Console.WriteLine("Enter milestone ID: ");
+                milestoneID = Console.ReadLine();
+                GetAllTests(client, previousResults, milestoneID);
             }
             else
             {
@@ -179,10 +183,10 @@ namespace TestRailResultExport
         /// Retrieves TestRail tests (both in and out of plans)
         /// </summary>
         /// <param name="previousResults">Number of previous results to include.</param>
-		private static void GetAllTests(APIClient client, int previousResults)
+		private static void GetAllTests(APIClient client, int previousResults, string milestoneID)
 		{
-			Console.WriteLine("Enter milestone ID: ");
-			milestoneID = Console.ReadLine();
+			//Console.WriteLine("Enter milestone ID: ");
+			//milestoneID = Console.ReadLine();
 
             JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
@@ -221,7 +225,7 @@ namespace TestRailResultExport
 
 			try
 			{
-                ostrm = new FileStream("Tests"+ DateTime.UtcNow.ToLongDateString() +".csv", FileMode.OpenOrCreate, FileAccess.Write);
+                ostrm = new FileStream("Tests.csv", FileMode.OpenOrCreate, FileAccess.Write);
 				writer = new StreamWriter(ostrm);
 			}
 			catch (Exception e)
