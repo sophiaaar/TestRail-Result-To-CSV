@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
 
 namespace TestRailResultExport
 {
@@ -100,14 +101,27 @@ namespace TestRailResultExport
             int sheetId = sheetMetaData.Sheets[0].Properties.SheetId.Value; // The sheetId changes when the CSV is uploaded each time (thanks google :| )
 
             // The ID of the spreadsheet to copy the sheet to.
-            string destinationSpreadsheetId = "1WyDbGAO-VbOhfwuAOOt6J_qC9Z_PMjW7hZ-DdTn3Qx8";
+            string destinationSpreadsheetId = "1HqBYTSOvMLHqrI4SWbhNKO93w79Q3Y0Rq_AAI68bwTc";
 
             Google.Apis.Sheets.v4.Data.CopySheetToAnotherSpreadsheetRequest requestBody = new Google.Apis.Sheets.v4.Data.CopySheetToAnotherSpreadsheetRequest();
             requestBody.DestinationSpreadsheetId = destinationSpreadsheetId;
 
             SpreadsheetsResource.SheetsResource.CopyToRequest request = sheetsService.Spreadsheets.Sheets.CopyTo(requestBody, spreadsheetId, sheetId);
 
+            Google.Apis.Sheets.v4.Data.SheetProperties response = request.Execute();
+
             Console.WriteLine("Copy finished");
+
+            var destSheetMetaData = sheetsService.Spreadsheets.Get(destinationSpreadsheetId).Execute();
+            IList<Sheet> sheets = destSheetMetaData.Sheets;
+
+            foreach (Sheet sheet in sheets)
+            {
+                if (sheet.Properties.Title == "Copy of CSV Report")
+                {
+                    sheet.Properties.Title = "Data";
+                }
+            }
 
             //TODO: rename newly created sheet and delete old one?
         }
