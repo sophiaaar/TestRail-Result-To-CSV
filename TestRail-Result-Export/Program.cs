@@ -80,7 +80,6 @@ namespace TestRailResultExport
             //EvaluateChoice(client);
             GetAllTests(client, 3, "96");
 
-            //DriveService service = GoogleDrive.ConnectToGoogleDrive();
             GoogleDrive.UploadCsvAsSpreadsheet(service);
             GoogleDrive.CopyToSheet(sheetsService);
 
@@ -185,8 +184,9 @@ namespace TestRailResultExport
         /// <param name="previousResults">Number of previous results to include.</param>
 		private static void GetAllTests(APIClient client, int previousResults, string milestoneID)
 		{
-			//Console.WriteLine("Enter milestone ID: ");
-			//milestoneID = Console.ReadLine();
+            //Console.WriteLine("Enter milestone ID: ");
+            //milestoneID = Console.ReadLine();
+            Console.WriteLine("Getting data from TestRail");
 
             JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
@@ -265,18 +265,18 @@ namespace TestRailResultExport
                     title = testObject.Property("title").Value.ToString();
                     status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
 
-                    if (status == "Passed")
-                    {
-                        numberPassed++;
-                    }
-                    else if (status == "Failed")
-                    {
-                        numberFailed++;
-                    }
-                    else if (status == "Blocked")
-                    {
-                        numberBlocked++;
-                    }
+                    //if (status == "Passed")
+                    //{
+                    //    numberPassed++;
+                    //}
+                    //else if (status == "Failed")
+                    //{
+                    //    numberFailed++;
+                    //}
+                    //else if (status == "Blocked")
+                    //{
+                    //    numberBlocked++;
+                    //}
 
                     //allCaseIDs.Add(caseID);
 
@@ -478,19 +478,19 @@ namespace TestRailResultExport
 			}
             List<Test> sortedList = SortListOfTests(listOfTests);
 
-            Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
-            Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
+            //Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
+            //Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
 
-            //configs.Count(); 
+            ////configs.Count(); 
 
-            var grouping = runConfigs.GroupBy(o => o.Config);
+            //var grouping = runConfigs.GroupBy(o => o.Config);
 
-            foreach (var configGroup in grouping)
-            {
-                string configName = configGroup.Key.ToString();
-                string count = configGroup.Count<Run>().ToString();
-                Console.WriteLine("Config: {0}, Count: {1}", configName, count);
-            }
+            //foreach (var configGroup in grouping)
+            //{
+            //    string configName = configGroup.Key.ToString();
+            //    string count = configGroup.Count<Run>().ToString();
+            //    Console.WriteLine("Config: {0}, Count: {1}", configName, count);
+            //}
 
             //var test = configs.GroupBy(x => x);
             //foreach (var tester in test)
@@ -499,7 +499,7 @@ namespace TestRailResultExport
             //    string count = tester.Count().ToString();
             //}
 
-            Console.WriteLine("\n, \n");
+           // Console.WriteLine("\n, \n");
 
             string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
             Console.WriteLine(csvOfTests);
@@ -799,8 +799,9 @@ namespace TestRailResultExport
 
         public static string CreateCSVOfTestsComplete(List<Test> sortedList, int previousResults, List<Case> listOfCases)
 		{
-			StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Suite Name", "Title", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
+            //Console.WriteLine("Creating CSV");
+            StringBuilder csv = new StringBuilder();
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", "Suite Name", "Title", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();

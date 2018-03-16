@@ -83,39 +83,31 @@ namespace TestRailResultExport
             FilesResource.UpdateMediaUpload request;
             using (var stream = new System.IO.FileStream("Tests.csv", System.IO.FileMode.Open))
             {
-                //request = driveService.Files.Create(fileMetadata, stream, "text/csv");
                 request = driveService.Files.Update(fileMetadata, "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA", stream, "text/csv");
                 request.Fields = "id";
 
                 request.Upload();
             }
             var file = request.ResponseBody;
-            Console.WriteLine("File ID: " + file.Id);
+            Console.WriteLine("File ID of sheet: " + file.Id);
         }
 
         public static void CopyToSheet(SheetsService sheetsService)
         {
             // The ID of the spreadsheet containing the sheet to copy.
             string spreadsheetId = "1to1HtFx5WoAjU07OLWMa1gqm8WjGG9T3PFK-7cDEjKA";
-
-            // The ID (gid) of the sheet to copy.
-            int sheetId = 400073617;
+            var sheetMetaData = sheetsService.Spreadsheets.Get(spreadsheetId).Execute();
+            int sheetId = sheetMetaData.Sheets[0].Properties.SheetId.Value; // The sheetId changes when the CSV is uploaded each time (thanks google :| )
 
             // The ID of the spreadsheet to copy the sheet to.
-            string destinationSpreadsheetId = "1y0jHtVpdIF6Mr2vBShdrXtiIBcAEJshKqjUdR-Nantk";
+            string destinationSpreadsheetId = "1WyDbGAO-VbOhfwuAOOt6J_qC9Z_PMjW7hZ-DdTn3Qx8";
 
             Google.Apis.Sheets.v4.Data.CopySheetToAnotherSpreadsheetRequest requestBody = new Google.Apis.Sheets.v4.Data.CopySheetToAnotherSpreadsheetRequest();
             requestBody.DestinationSpreadsheetId = destinationSpreadsheetId;
-            
 
             SpreadsheetsResource.SheetsResource.CopyToRequest request = sheetsService.Spreadsheets.Sheets.CopyTo(requestBody, spreadsheetId, sheetId);
 
-            // To execute asynchronously in an async method, replace `request.Execute()` as shown:
-            Google.Apis.Sheets.v4.Data.SheetProperties response = request.Execute();
-            // Data.SheetProperties response = await request.ExecuteAsync();
-
-            // TODO: Change code below to process the `response` object:
-            Console.WriteLine(JsonConvert.SerializeObject(response));
+            Console.WriteLine("Copy finished");
 
             //TODO: rename newly created sheet and delete old one?
         }
