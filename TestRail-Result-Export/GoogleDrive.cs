@@ -101,7 +101,7 @@ namespace TestRailResultExport
             int sheetId = sheetMetaData.Sheets[0].Properties.SheetId.Value; // The sheetId changes when the CSV is uploaded each time (thanks google :| )
 
             // The ID of the spreadsheet to copy the sheet to.
-            string destinationSpreadsheetId = "1HqBYTSOvMLHqrI4SWbhNKO93w79Q3Y0Rq_AAI68bwTc";
+            string destinationSpreadsheetId = "1WyDbGAO-VbOhfwuAOOt6J_qC9Z_PMjW7hZ-DdTn3Qx8";
 
             Google.Apis.Sheets.v4.Data.CopySheetToAnotherSpreadsheetRequest requestBody = new Google.Apis.Sheets.v4.Data.CopySheetToAnotherSpreadsheetRequest();
             requestBody.DestinationSpreadsheetId = destinationSpreadsheetId;
@@ -120,6 +120,7 @@ namespace TestRailResultExport
                 if (sheet.Properties.Title == "Copy of CSV Report")
                 {
                     sheet.Properties.Title = "Data";
+                    //sheet.Properties.Title.
                 }
             }
 

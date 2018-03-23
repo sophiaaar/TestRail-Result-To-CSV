@@ -81,13 +81,13 @@ namespace TestRailResultExport
             GetAllTests(client, 3, "96");
 
             GoogleDrive.UploadCsvAsSpreadsheet(service);
-            GoogleDrive.CopyToSheet(sheetsService);
+            //GoogleDrive.CopyToSheet(sheetsService);
 
         }
 
 		private static APIClient ConnectToTestrail()
 		{
-			APIClient client = new APIClient("http://qatestrail.hq.unity3d.com");
+			APIClient client = new APIClient("https://qatestrail.hq.unity3d.com");
 			client.User = _configReader.TestRailUser;
 			client.Password = _configReader.TestRailPass;
 			return client;
@@ -904,7 +904,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}", caseNotRun.SuiteName, "\"" + caseNotRun.CaseName + "\"", "", "\"" + caseNotRun.Type + "\"", "", "", "", "", "Untested", "\n");
                     csv.Append(line);
                 }
                 else
