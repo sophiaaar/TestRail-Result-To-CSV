@@ -53,6 +53,12 @@ namespace TestRailResultExport
         {
             return (JObject)client.SendGet($"get_suite/" + suiteID);
         }
+
+        public static JObject GetSection(APIClient client, string sectionID)
+        {
+            return (JObject)client.SendGet($"get_section/" + sectionID);
+        }
+
         public static JArray GetCaseTypes(APIClient client)
         {
             return (JArray)client.SendGet("get_case_types");
@@ -73,6 +79,12 @@ namespace TestRailResultExport
                 listOfSuiteIds.Add(id);
             }
             return listOfSuiteIds;
+        }
+
+        public static string GetSectionName(JObject section)
+        {
+            string name = section.Property("name").Value.ToString();
+            return name;
         }
 
         public static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs, List<MainClass.Run> runs)
