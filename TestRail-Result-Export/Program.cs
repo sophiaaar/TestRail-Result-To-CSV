@@ -74,13 +74,13 @@ namespace TestRailResultExport
 		{
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
-            SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
-            DriveService service = GoogleDrive.ConnectToGoogleDrive();
+            //SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
+            //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
             //EvaluateChoice(client);
             GetAllTests(client, 3, "96");
 
-            GoogleDrive.UploadCsvAsSpreadsheet(service);
+            //GoogleDrive.UploadCsvAsSpreadsheet(service);
             //GoogleDrive.CopyToSheet(sheetsService);
 
         }
