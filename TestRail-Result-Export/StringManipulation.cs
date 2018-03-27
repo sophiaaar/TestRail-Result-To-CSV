@@ -55,7 +55,7 @@ namespace TestRailResultExport
                 case "2":
                     return "Blocked";
                 case "3":
-                    return "Untested";
+                    return "In Progress";
                 case "4":
                     return "Retest";
                 case "5":

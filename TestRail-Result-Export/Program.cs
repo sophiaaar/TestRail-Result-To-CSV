@@ -764,8 +764,8 @@ namespace TestRailResultExport
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                newCase.CreatedOn = createdOn;
-                newCase.UpdatedOn = updatedOn;
+                newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).ToString();
+                newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).ToString();
                 newCase.Section = sectionName;
                 newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
@@ -806,8 +806,8 @@ namespace TestRailResultExport
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                newCase.CreatedOn = createdOn;
-                newCase.UpdatedOn = updatedOn;
+                newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).ToString();
+                newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).ToString();
                 newCase.Section = sectionName;
                 newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
