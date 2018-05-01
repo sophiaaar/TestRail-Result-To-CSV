@@ -82,7 +82,6 @@ namespace TestRailResultExport
             //SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
-            //EvaluateChoice(client);
             //GetAllTests(client, 3, "139");
             GetAllTests(client, 3, args[0]); //Milestone ID must be entered as cmd line arg
 
@@ -100,91 +99,6 @@ namespace TestRailResultExport
 		}
 
         /// <summary>
-        /// Asks the user which kind of action they'd like to perform, then calls the appropriate method
-        /// </summary>
-        private static void EvaluateChoice(APIClient client)
-        {
-            Console.WriteLine("To create a CSV of all cases, press 1,");
-            Console.WriteLine("To create a CSV of all tests, press 2");
-
-            string selection = Console.ReadLine();
-
-            if (selection == "1")
-            {
-                //JArray test = AccessTestRail.GetStatuses(client);
-                //GetAllCases(client, true);
-            }
-            else if (selection == "2")
-            {
-                Console.WriteLine("How many previous results do you want to see?");
-                int previousResults = Int32.Parse(Console.ReadLine());
-
-                //GetAllTests_Light(client, previousResults);
-                Console.WriteLine("Enter milestone ID: ");
-                milestoneID = Console.ReadLine();
-                GetAllTests(client, previousResults, milestoneID);
-            }
-            else
-            {
-                Console.WriteLine("Please make a valid selection");
-                EvaluateChoice(client);
-            }
-        }
-
-
-
-  //      /// <summary>
-  //      /// Retrieves TestRail cases using the API and puts them into a JArray so a CSV can be made
-  //      /// </summary>
-		//private static void GetAllCases(APIClient client, bool fast)
-		//{
-		//	JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
-
-		//	FileStream ostrm;
-		//	StreamWriter writer;
-		//	TextWriter oldOut = Console.Out;
-
-		//	try
-		//	{
-		//		ostrm = new FileStream("Cases.csv", FileMode.OpenOrCreate, FileAccess.Write);
-		//		writer = new StreamWriter(ostrm);
-		//	}
-		//	catch (Exception e)
-		//	{
-		//		Console.WriteLine("Cannot open Cases.csv for writing");
-		//		Console.WriteLine(e.Message);
-		//		return;
-		//	}
-		//	Console.SetOut(writer);
-
-		//	for (int i = 0; i < suitesArray.Count; i++)
-		//	{
-		//		JObject arrayObject = suitesArray[i].ToObject<JObject>();
-		//		string id = arrayObject.Property("id").Value.ToString();
-  //              string suiteName = arrayObject.Property("name").Value.ToString();
-
-
-  //              JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
-
-  //              if (fast == true)
-  //              {
-  //                  string casesCSV = CreateCsvOfCases(client, casesArray, suiteName);
-  //                  Console.WriteLine(casesCSV);
-  //              }
-  //              else
-  //              {
-  //                  string casesCSV = CreateCsvOfCases(client, casesArray, suiteName);
-  //                  Console.WriteLine(casesCSV);
-  //              }
-		//	}
-
-		//	Console.SetOut(oldOut);
-		//	writer.Close();
-		//	ostrm.Close();
-		//}
-
-
-        /// <summary>
         /// Retrieves TestRail tests (both in and out of plans)
         /// </summary>
         /// <param name="previousResults">Number of previous results to include.</param>
@@ -200,6 +114,7 @@ namespace TestRailResultExport
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
             JArray caseTypes = AccessTestRail.GetCaseTypes(client); // This JArray will be used when evaluating case types
+            JArray statusArray = AccessTestRail.GetStatuses(client); // This will be used for evaluating status IDs
 
             List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runs);
 
@@ -272,7 +187,7 @@ namespace TestRailResultExport
                     }
 
                     title = testObject.Property("title").Value.ToString();
-                    status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
+                    status = StringManipulation.GetStatus(statusArray, testObject.Property("status_id").Value.ToString());
 
                     //if (status == "Passed")
                     //{
@@ -387,7 +302,7 @@ namespace TestRailResultExport
                     caseIDsInMilestone.Add(caseID);
 
 					title = testObject.Property("title").Value.ToString();
-                    status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
+                    status = StringManipulation.GetStatus(statusArray, testObject.Property("status_id").Value.ToString());
 
 					if (status == "Passed")
 					{
@@ -502,225 +417,7 @@ namespace TestRailResultExport
 			Console.WriteLine("Done");
 		}
 
-        /// <summary>
-        /// Retrieves TestRail tests (both in and out of plans)
-        /// </summary>
-        /// <param name="previousResults">Number of previous results to include.</param>
-        private static void GetAllTests_Light(APIClient client, int previousResults)
-        {
-            Console.WriteLine("Enter milestone ID: ");
-            milestoneID = Console.ReadLine();
-
-            JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
-            JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
-            //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
-
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runs);
-
-            List<Test> listOfTests = new List<Test>();
-            List<Suite> listOfSuites = new List<Suite>();
-
-            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
-
-            for (int i = 0; i < suitesArray.Count; i++)
-            {
-                JObject arrayObject = suitesArray[i].ToObject<JObject>();
-                string id = arrayObject.Property("id").Value.ToString();
-                string suiteName = arrayObject.Property("name").Value.ToString(); //create list of suiteNames to use later
-
-                Suite newSuite;
-                newSuite.SuiteID = id;
-                newSuite.SuiteName = suiteName;
-                listOfSuites.Add(newSuite);
-
-
-            }
-
-            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs, runs);
-
-            FileStream ostrm;
-            StreamWriter writer;
-            TextWriter oldOut = Console.Out;
-
-            try
-            {
-                ostrm = new FileStream("Tests" + DateTime.UtcNow.ToLongDateString() + ".csv", FileMode.OpenOrCreate, FileAccess.Write);
-                writer = new StreamWriter(ostrm);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Cannot open Tests.csv for writing");
-                Console.WriteLine(e.Message);
-                return;
-            }
-            Console.SetOut(writer);
-
-            for (int i = 0; i < runIDs.Count; i++)
-            {
-                JArray testsArray = AccessTestRail.GetTestsInRun(client, runIDs[i]);
-
-                string testID = "";
-                int caseID = 0;
-                string title = "";
-                string status = "";
-
-                //Test[] arrayOfTests = new Test[testsArray.Count];
-
-                for (int j = 0; j < testsArray.Count; j++)
-                {
-                    JObject testObject = testsArray[j].ToObject<JObject>();
-                    testID = testObject.Property("id").Value.ToString();
-
-                    if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
-                    {
-                        caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
-                    }
-
-                    if (!caseIDsInMilestone.Contains(caseID))
-                    {
-                        caseIDsInMilestone.Add(caseID);
-                    }
-
-                    title = testObject.Property("title").Value.ToString();
-                    status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
-
-                    if (status == "Passed")
-                    {
-                        numberPassed++;
-                    }
-                    else if (status == "Failed")
-                    {
-                        numberFailed++;
-                    }
-                    else if (status == "Blocked")
-                    {
-                        numberBlocked++;
-                    }
-
-                    //allCaseIDs.Add(caseID);
-
-                    string suiteName = "";
-
-                    // Some suites have been deleted, but the tests and runs remain
-                    if (suiteIDs[i] != "0")
-                    {
-                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteIDs[i]);
-                        // Get the suite_id that corresponds to the run_id
-                        suiteName = currentSuite.SuiteName;
-                    }
-                    else
-                    {
-                        suiteName = "deleted";
-                    }
-
-                    Test currentTest;
-                    currentTest.SuiteID = suiteIDs[i];
-                    currentTest.SuiteName = suiteName;
-                    currentTest.RunID = Int32.Parse(runIDs[i]);
-                    currentTest.TestID = testID;
-                    currentTest.CaseID = caseID;
-                    currentTest.Title = title;
-                    currentTest.Status = status;
-                    currentTest.Defects = "";
-                    currentTest.Comment = "";
-                    currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
-                    currentTest.EditorVersion = "";
-
-                    currentTest.identifier = caseID + "_" + "";
-
-                    listOfTests.Add(currentTest);
-                }
-
-            }
-
-            for (int i = 0; i < runInPlanIds.Count; i++)
-            {
-                JArray testsArray = AccessTestRail.GetTestsInRun(client, runInPlanIds[i]);
-
-                string testID = "";
-                int caseID = 0;
-                string title = "";
-                string status = "";
-
-                for (int j = 0; j < testsArray.Count; j++)
-                {
-                    JObject testObject = testsArray[j].ToObject<JObject>();
-
-                    testID = testObject.Property("id").Value.ToString();
-
-                    if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
-                    {
-                        caseID = Int32.Parse(testObject.Property("case_id").Value.ToString());
-                    }
-                    caseIDsInMilestone.Add(caseID);
-
-                    title = testObject.Property("title").Value.ToString();
-                    status = StringManipulation.GetStatus(testObject.Property("status_id").Value.ToString());
-
-                    if (status == "Passed")
-                    {
-                        numberPassed++;
-                    }
-                    else if (status == "Failed")
-                    {
-                        numberFailed++;
-                    }
-                    else if (status == "Blocked")
-                    {
-                        numberBlocked++;
-                    }
-
-                    string suiteName = "";
-
-                    // Some suites have been deleted, but the tests and runs remain
-                    if (suiteInPlanIDs[i] != "0")
-                    {
-                        Suite currentSuite = listOfSuites.Find(x => x.SuiteID == suiteInPlanIDs[i]);
-                        suiteName = currentSuite.SuiteName;
-                    }
-                    else
-                    {
-                        suiteName = "deleted";
-                    }
-
-                    Test currentTest;
-                    currentTest.SuiteID = suiteInPlanIDs[i];
-                    currentTest.SuiteName = suiteName;
-                    currentTest.RunID = Int32.Parse(runInPlanIds[i]);
-                    currentTest.TestID = testID;
-                    currentTest.CaseID = caseID;
-                    currentTest.Title = title;
-                    currentTest.Status = status;
-                    currentTest.Defects = "";
-                    currentTest.Comment = "";
-                    currentTest.Config = "";
-                    currentTest.EditorVersion = "";
-
-                    currentTest.identifier = caseID + "_" + "";
-
-                    listOfTests.Add(currentTest);
-                }
-
-            }
-            List<Test> sortedList = SortListOfTests_Light(listOfTests);
-
-            //Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
-            //Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
-
-            //Console.WriteLine("\n, \n");
-
-            string csvOfTests = CreateCSVOfTests_Light(sortedList, previousResults);
-            Console.WriteLine(csvOfTests);
-
-            //GoogleSheets.WriteToSheet(csvOfTests);
-
-            //GoogleSheets.OutputTestsToGoogleSheets_Light(sortedList, previousResults);
-
-            Console.SetOut(oldOut);
-            writer.Close();
-            ostrm.Close();
-            Console.WriteLine("Done");
-        }
+        //
 
         private static string CreateCsvOfCases(APIClient client, JArray caseTypes, JArray casesArray, string suiteName)
 		{
