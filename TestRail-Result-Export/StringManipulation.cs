@@ -43,28 +43,44 @@ namespace TestRailResultExport
 
         /// <summary>
         /// Converts the status number to a string
+        /// This is done in a case-switch because these values do not change, and it avoids further slow API calls
         /// </summary>
         /// <returns>The status.</returns>
         /// <param name="rawValue">Raw value.</param>
-        public static string GetStatus(string rawValue)
+        public static string GetStatus(JArray statusArray, string rawValue)
         {
-            switch (rawValue)
+            string statusName = "";
+
+            for (int i = 0; i < statusArray.Count; i++)
             {
-                case "1":
-                    return "Passed";
-                case "2":
-                    return "Blocked";
-                case "3":
-                    return "In Progress";
-                case "4":
-                    return "Retest";
-                case "5":
-                    return "Failed";
-                case "6":
-                    return "Pending";
-                default:
-                    return "Other";
+                JObject caseType = statusArray[i].ToObject<JObject>();
+
+                if (caseType.Property("id").Value.ToString() == rawValue)
+                {
+                    statusName = caseType.Property("name").Value.ToString();
+                    break;
+                }
             }
+
+            return statusName;
+
+            //switch (rawValue)
+            //{
+            //    case "1":
+            //        return "Passed";
+            //    case "2":
+            //        return "Blocked";
+            //    case "3":
+            //        return "In Progress";
+            //    case "4":
+            //        return "Retest";
+            //    case "5":
+            //        return "Failed";
+            //    case "6":
+            //        return "Pending";
+            //    default:
+            //        return "Other";
+            //}
         }
 
         /// <summary>
