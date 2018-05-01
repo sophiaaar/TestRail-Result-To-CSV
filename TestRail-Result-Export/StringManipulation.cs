@@ -91,39 +91,22 @@ namespace TestRailResultExport
             }
         }
 
-        public static string GetCaseType(string rawValue)
+        public static string GetCaseType(JArray caseTypesArray, string rawValue)
         {
-            switch (rawValue)
+            string caseTypeName = "";
+
+            for (int i = 0; i < caseTypesArray.Count; i++)
             {
-                case "1":
-                    return "Acceptance";
-                case "2":
-                    return "Accessibility";
-                case "3":
-                    return "Automated";
-                case "4":
-                    return "Compatibility";
-                case "5":
-                    return "Destructive";
-                case "6":
-                    return "Functional";
-                case "7":
-                    return "Other";
-                case "8":
-                    return "Performance";
-                case "9":
-                    return "Regression";
-                case "10":
-                    return "Security";
-                case "11":
-                    return "Smoke and Sanity";
-                case "12":
-                    return "Usability";
-                case "13":
-                    return "Use Case";
-                default:
-                    return "Unknown";
+                JObject caseType = caseTypesArray[i].ToObject<JObject>();
+
+                if (caseType.Property("id").Value.ToString() == rawValue)
+                {
+                    caseTypeName = caseType.Property("name").Value.ToString();
+                    break;
+                }
             }
+
+            return caseTypeName;
         }
 
         public static string GetEditorVersion(string rawValue)
