@@ -45,6 +45,7 @@ namespace TestRailResultExport
             public string Comment;
             public string Config;
             public string EditorVersion;
+            public string identifier;
         }
 
         public struct Case
@@ -81,7 +82,8 @@ namespace TestRailResultExport
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
             //EvaluateChoice(client);
-            GetAllTests(client, 3, "96");
+            //GetAllTests(client, 3, "96");
+            GetAllTests(client, 3, args[0]); //Milestone ID must be entered as cmd line arg
 
             //GoogleDrive.UploadCsvAsSpreadsheet(service);
             //GoogleDrive.CopyToSheet(sheetsService);
@@ -190,6 +192,7 @@ namespace TestRailResultExport
             //Console.WriteLine("Enter milestone ID: ");
             //milestoneID = Console.ReadLine();
             Console.WriteLine("Getting data from TestRail");
+            Console.WriteLine("Milestone ID: " + milestoneID);
 
             JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
@@ -228,7 +231,7 @@ namespace TestRailResultExport
 
 			try
 			{
-                ostrm = new FileStream("Tests.csv", FileMode.OpenOrCreate, FileAccess.Write);
+                ostrm = new FileStream("Tests" + milestoneID + ".csv", FileMode.OpenOrCreate, FileAccess.Write);
 				writer = new StreamWriter(ostrm);
 			}
 			catch (Exception e)
@@ -351,6 +354,8 @@ namespace TestRailResultExport
                     currentTest.Comment = comment;
                     currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
+
+                    currentTest.identifier = caseID + "_" + ""; // config is blank
 
 					listOfTests.Add(currentTest);
                 }
@@ -475,34 +480,13 @@ namespace TestRailResultExport
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
 
-					listOfTests.Add(currentTest);
+                    currentTest.identifier = caseID + "_" + config;
+
+                    listOfTests.Add(currentTest);
 				}
 
 			}
             List<Test> sortedList = SortListOfTests(listOfTests);
-
-            //Console.WriteLine("Number Passed, Number Failed, Number Blocked,");
-            //Console.WriteLine(string.Format("{0},{1},{2},{3},{4}", numberPassed, numberFailed, numberBlocked, "\n", "\n"));
-
-            ////configs.Count(); 
-
-            //var grouping = runConfigs.GroupBy(o => o.Config);
-
-            //foreach (var configGroup in grouping)
-            //{
-            //    string configName = configGroup.Key.ToString();
-            //    string count = configGroup.Count<Run>().ToString();
-            //    Console.WriteLine("Config: {0}, Count: {1}", configName, count);
-            //}
-
-            //var test = configs.GroupBy(x => x);
-            //foreach (var tester in test)
-            //{
-            //    string testName = tester.Key.ToString();
-            //    string count = tester.Count().ToString();
-            //}
-
-           // Console.WriteLine("\n, \n");
 
             string csvOfTests = CreateCSVOfTestsComplete(sortedList, previousResults, listOfCases);
             Console.WriteLine(csvOfTests);
@@ -639,6 +623,8 @@ namespace TestRailResultExport
                     currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
                     currentTest.EditorVersion = "";
 
+                    currentTest.identifier = caseID + "_" + "";
+
                     listOfTests.Add(currentTest);
                 }
 
@@ -707,6 +693,8 @@ namespace TestRailResultExport
                     currentTest.Config = "";
                     currentTest.EditorVersion = "";
 
+                    currentTest.identifier = caseID + "_" + "";
+
                     listOfTests.Add(currentTest);
                 }
 
@@ -761,11 +749,20 @@ namespace TestRailResultExport
                 JObject section = AccessTestRail.GetSection(client, sectionID);
                 string sectionName = AccessTestRail.GetSectionName(section);
 
+                if (sectionName.Contains(","))
+                {
+                    StringBuilder sb = new StringBuilder(sectionName);
+                    sb[sectionName.IndexOf(',')] = ' ';
+                    sectionName = sb.ToString();
+                }
+
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).Date.ToString();
-                newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).Date.ToString();
+                //newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).Date.ToString();
+                //newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).Date.ToString();
+                newCase.CreatedOn = createdOn;
+                newCase.UpdatedOn = updatedOn;
                 newCase.Section = sectionName;
                 newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
@@ -803,11 +800,20 @@ namespace TestRailResultExport
                 JObject section = AccessTestRail.GetSection(client, sectionID);
                 string sectionName = AccessTestRail.GetSectionName(section);
 
+                if (sectionName.Contains(","))
+                {
+                    StringBuilder sb = new StringBuilder(sectionName);
+                    sb[sectionName.IndexOf(',')] = ' ';
+                    sectionName = sb.ToString();
+                }
+
                 Case newCase;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).Date.ToString();
-                newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).Date.ToString();
+                //newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).Date.ToString();
+                //newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).Date.ToString();
+                newCase.CreatedOn = createdOn;
+                newCase.UpdatedOn = updatedOn;
                 newCase.Section = sectionName;
                 newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
@@ -824,7 +830,7 @@ namespace TestRailResultExport
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14}", "Suite Name", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", "Suite Name", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -876,7 +882,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},", "\"" + testObject.SuiteName + "\"", "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},", "\"" + testObject.SuiteName + "\"", testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
 
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -900,7 +906,7 @@ namespace TestRailResultExport
                         {
                             csv.Append("\n"); //removes the blank row between the headings and the first result
                         }
-                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},", "\"" + testObject.SuiteName + "\"", "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},", "\"" + testObject.SuiteName + "\"", testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
 
                         // if its a pass, value is 100
                         if (testObject.Status == "Passed")
@@ -927,7 +933,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", caseNotRun.SuiteName, "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "", "Untested", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}", caseNotRun.SuiteName, caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "", "Untested", "\n");
                     csv.Append(line);
                 }
                 else
