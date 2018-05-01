@@ -78,11 +78,12 @@ namespace TestRailResultExport
 		{
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
+
             //SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
             //EvaluateChoice(client);
-            //GetAllTests(client, 3, "96");
+            //GetAllTests(client, 3, "139");
             GetAllTests(client, 3, args[0]); //Milestone ID must be entered as cmd line arg
 
             //GoogleDrive.UploadCsvAsSpreadsheet(service);
@@ -111,7 +112,7 @@ namespace TestRailResultExport
             if (selection == "1")
             {
                 //JArray test = AccessTestRail.GetStatuses(client);
-                GetAllCases(client, true);
+                //GetAllCases(client, true);
             }
             else if (selection == "2")
             {
@@ -132,55 +133,55 @@ namespace TestRailResultExport
 
 
 
-        /// <summary>
-        /// Retrieves TestRail cases using the API and puts them into a JArray so a CSV can be made
-        /// </summary>
-		private static void GetAllCases(APIClient client, bool fast)
-		{
-			JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
+  //      /// <summary>
+  //      /// Retrieves TestRail cases using the API and puts them into a JArray so a CSV can be made
+  //      /// </summary>
+		//private static void GetAllCases(APIClient client, bool fast)
+		//{
+		//	JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
 
-			FileStream ostrm;
-			StreamWriter writer;
-			TextWriter oldOut = Console.Out;
+		//	FileStream ostrm;
+		//	StreamWriter writer;
+		//	TextWriter oldOut = Console.Out;
 
-			try
-			{
-				ostrm = new FileStream("Cases.csv", FileMode.OpenOrCreate, FileAccess.Write);
-				writer = new StreamWriter(ostrm);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Cannot open Cases.csv for writing");
-				Console.WriteLine(e.Message);
-				return;
-			}
-			Console.SetOut(writer);
+		//	try
+		//	{
+		//		ostrm = new FileStream("Cases.csv", FileMode.OpenOrCreate, FileAccess.Write);
+		//		writer = new StreamWriter(ostrm);
+		//	}
+		//	catch (Exception e)
+		//	{
+		//		Console.WriteLine("Cannot open Cases.csv for writing");
+		//		Console.WriteLine(e.Message);
+		//		return;
+		//	}
+		//	Console.SetOut(writer);
 
-			for (int i = 0; i < suitesArray.Count; i++)
-			{
-				JObject arrayObject = suitesArray[i].ToObject<JObject>();
-				string id = arrayObject.Property("id").Value.ToString();
-                string suiteName = arrayObject.Property("name").Value.ToString();
+		//	for (int i = 0; i < suitesArray.Count; i++)
+		//	{
+		//		JObject arrayObject = suitesArray[i].ToObject<JObject>();
+		//		string id = arrayObject.Property("id").Value.ToString();
+  //              string suiteName = arrayObject.Property("name").Value.ToString();
 
 
-                JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
+  //              JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
 
-                if (fast == true)
-                {
-                    string casesCSV = CreateCsvOfCases(client, casesArray, suiteName);
-                    Console.WriteLine(casesCSV);
-                }
-                else
-                {
-                    string casesCSV = CreateCsvOfCases(client, casesArray, suiteName);
-                    Console.WriteLine(casesCSV);
-                }
-			}
+  //              if (fast == true)
+  //              {
+  //                  string casesCSV = CreateCsvOfCases(client, casesArray, suiteName);
+  //                  Console.WriteLine(casesCSV);
+  //              }
+  //              else
+  //              {
+  //                  string casesCSV = CreateCsvOfCases(client, casesArray, suiteName);
+  //                  Console.WriteLine(casesCSV);
+  //              }
+		//	}
 
-			Console.SetOut(oldOut);
-			writer.Close();
-			ostrm.Close();
-		}
+		//	Console.SetOut(oldOut);
+		//	writer.Close();
+		//	ostrm.Close();
+		//}
 
 
         /// <summary>
@@ -197,6 +198,8 @@ namespace TestRailResultExport
             JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
+
+            JArray caseTypes = AccessTestRail.GetCaseTypes(client); // This JArray will be used when evaluating case types
 
             List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runs);
 
@@ -219,7 +222,7 @@ namespace TestRailResultExport
 
 
                 JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
-                listOfCases = CreateListOfCases(client, casesArray, listOfCases, id, suiteName);
+                listOfCases = CreateListOfCases(client, caseTypes, casesArray, listOfCases, id, suiteName);
             }
 
 
@@ -719,7 +722,7 @@ namespace TestRailResultExport
             Console.WriteLine("Done");
         }
 
-        private static string CreateCsvOfCases(APIClient client, JArray casesArray, string suiteName)
+        private static string CreateCsvOfCases(APIClient client, JArray caseTypes, JArray casesArray, string suiteName)
 		{
 			StringBuilder csv = new StringBuilder();
 
@@ -767,7 +770,7 @@ namespace TestRailResultExport
                 newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
-                newCase.Type = StringManipulation.GetCaseType(caseType);
+                newCase.Type = StringManipulation.GetCaseType(caseTypes, caseType);
                 newCase.TemplateStatus = templateStatus;
 
 
@@ -780,7 +783,7 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
-        public static List<Case> CreateListOfCases(APIClient client, JArray casesArray, List<Case> listOfCases, string suiteID, string suiteName)
+        public static List<Case> CreateListOfCases(APIClient client, JArray caseTypes, JArray casesArray, List<Case> listOfCases, string suiteID, string suiteName)
         {
             for (int i = 0; i < casesArray.Count; i++)
             {
@@ -818,7 +821,7 @@ namespace TestRailResultExport
                 newCase.CaseID = Int32.Parse(caseID);
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
-                newCase.Type = StringManipulation.GetCaseType(caseType);
+                newCase.Type = StringManipulation.GetCaseType(caseTypes, caseType);
                 newCase.TemplateStatus = templateStatus;
 
                 listOfCases.Add(newCase);
