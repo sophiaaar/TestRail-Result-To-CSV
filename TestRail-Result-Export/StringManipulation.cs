@@ -63,24 +63,6 @@ namespace TestRailResultExport
             }
 
             return statusName;
-
-            //switch (rawValue)
-            //{
-            //    case "1":
-            //        return "Passed";
-            //    case "2":
-            //        return "Blocked";
-            //    case "3":
-            //        return "In Progress";
-            //    case "4":
-            //        return "Retest";
-            //    case "5":
-            //        return "Failed";
-            //    case "6":
-            //        return "Pending";
-            //    default:
-            //        return "Other";
-            //}
         }
 
         /// <summary>

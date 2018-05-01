@@ -67,6 +67,10 @@ namespace TestRailResultExport
         {
             return (JArray)client.SendGet("get_statuses");
         }
+        public static JArray GetResultsFields(APIClient client)
+        {
+            return (JArray)client.SendGet("get_result_fields");
+        }
 
 
         public static List<int> GetAllSuites(JArray arrayOfSuites)
