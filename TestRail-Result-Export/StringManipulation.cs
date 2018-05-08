@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 
 namespace TestRailResultExport
@@ -62,6 +63,10 @@ namespace TestRailResultExport
                 }
             }
 
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+
+            statusName = textInfo.ToTitleCase(statusName);
+
             return statusName;
         }
 
@@ -103,6 +108,10 @@ namespace TestRailResultExport
                     break;
                 }
             }
+
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+
+            caseTypeName = textInfo.ToTitleCase(caseTypeName);
 
             return caseTypeName;
         }
