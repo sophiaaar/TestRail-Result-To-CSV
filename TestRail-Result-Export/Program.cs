@@ -20,6 +20,7 @@ namespace TestRailResultExport
         public static List<string> suiteNames = new List<string>();
         public static List<string> suiteInPlanIDs = new List<string>();
 		public static List<string> runIDs = new List<string>();
+        public static List<string> runNames = new List<string>();
         public static List<Run> runs = new List<Run>();
         public static List<int> allCaseIDs = new List<int>();
         public static List<int> caseIDsInMilestone = new List<int>(); //case IDs that have been run
@@ -37,6 +38,7 @@ namespace TestRailResultExport
             public string SuiteID;
             public string SuiteName;
             public int RunID;
+            public string RunName;
             public string TestID;
             public int CaseID;
             public string Title;
@@ -116,7 +118,7 @@ namespace TestRailResultExport
             JArray caseTypes = AccessTestRail.GetCaseTypes(client); // This JArray will be used when evaluating case types
             JArray statusArray = AccessTestRail.GetStatuses(client); // This will be used for evaluating status IDs
 
-            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runs);
+            List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runNames, runs);
 
             List<Case> listOfCases = new List<Case>();
             List<Test> listOfTests = new List<Test>();
@@ -141,7 +143,7 @@ namespace TestRailResultExport
             }
 
 
-            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs, runs);
+            AccessTestRail.GetSuitesAndRuns(c, suiteIDs, runIDs, runNames, runs);
 
 			FileStream ostrm;
 			StreamWriter writer;
@@ -264,6 +266,7 @@ namespace TestRailResultExport
                     currentTest.SuiteID = suiteIDs[i];
                     currentTest.SuiteName = suiteName;
                     currentTest.RunID = Int32.Parse(runIDs[i]);
+                    currentTest.RunName = runNames[i];
                     currentTest.TestID = testID;
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
@@ -351,6 +354,7 @@ namespace TestRailResultExport
                     string config = currentRun.Config;
                     string runID = currentRun.RunID;
 
+                    
                     if (config.Contains('"'))
                     {
                         config = config.Replace('"', ' ');
@@ -389,6 +393,7 @@ namespace TestRailResultExport
                     currentTest.SuiteID = suiteInPlanIDs[i];
                     currentTest.SuiteName = suiteName;
                     currentTest.RunID = Int32.Parse(runInPlanIds[i]);
+                    currentTest.RunName = runNames[i];
                     currentTest.TestID = testID;
                     currentTest.CaseID = caseID;
                     currentTest.Title = title;
@@ -428,7 +433,7 @@ namespace TestRailResultExport
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
                 string caseType = arrayObject.Property("type_id").Value.ToString();
-                string templateStatus = arrayObject.Property("custom_case_status").Value.ToString();
+                //string templateStatus = arrayObject.Property("custom_case_status").Value.ToString();
                 string sectionID = arrayObject.Property("section_id").Value.ToString();
 
                 string createdOn = arrayObject.Property("created_on").Value.ToString();
@@ -456,7 +461,7 @@ namespace TestRailResultExport
                 newCase.CaseName = caseName;
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
                 newCase.Type = StringManipulation.GetCaseType(caseTypes, caseType);
-                newCase.TemplateStatus = templateStatus;
+                newCase.TemplateStatus = "";
 
                 listOfCases.Add(newCase);
             }
@@ -467,7 +472,7 @@ namespace TestRailResultExport
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", "Suite Name", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "Suite Name", "Run Name", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
 			csv.Append(header);
 			int count = 0;
             List<int> passValues = new List<int>();
@@ -519,7 +524,7 @@ namespace TestRailResultExport
                             {
                                 csv.Append("\n"); //removes the blank row between the headings and the first result
                             }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},", "\"" + testObject.SuiteName + "\"", testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
 
                             // if its a pass, value is 100
                             if (testObject.Status == "Passed")
@@ -543,7 +548,7 @@ namespace TestRailResultExport
                         {
                             csv.Append("\n"); //removes the blank row between the headings and the first result
                         }
-                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},", "\"" + testObject.SuiteName + "\"", testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
 
                         // if its a pass, value is 100
                         if (testObject.Status == "Passed")
@@ -570,7 +575,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}", caseNotRun.SuiteName, caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "", "Untested", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14}", caseNotRun.SuiteName, "Not included in test run", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "", "Untested", "\n");
                     csv.Append(line);
                 }
                 else

@@ -91,7 +91,7 @@ namespace TestRailResultExport
             return name;
         }
 
-        public static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs, List<MainClass.Run> runs)
+        public static List<string> GetRunsInPlan(JArray planArray, APIClient client, List<string> suiteInPlanIDs, List<string> runNames, List<MainClass.Run> runs)
         {
             List<JArray> ListOfRunsInPlan = new List<JArray>();
             List<string> planIds = new List<string>();
@@ -135,6 +135,10 @@ namespace TestRailResultExport
                                 if (!runInPlanIds.Contains(runInPlanId))
                                 {
                                     runInPlanIds.Add(runInPlanId);
+
+                                    string runName = runObject.Property("name").Value.ToString();
+                                    runNames.Add(runName);
+
                                     string suiteInPlanId = runObject.Property("suite_id").Value.ToString();
                                     suiteInPlanIDs.Add(suiteInPlanId);
 
@@ -148,7 +152,7 @@ namespace TestRailResultExport
             return runInPlanIds;
         }
 
-        public static void GetSuitesAndRuns(JArray runsArr, List<string> suiteIDs, List<string> runIDs, List<MainClass.Run> runs)
+        public static void GetSuitesAndRuns(JArray runsArr, List<string> suiteIDs, List<string> runIDs, List<string> runNames, List<MainClass.Run> runs)
         {
             for (int i = 0; i < runsArr.Count; i++)
             {
@@ -160,9 +164,11 @@ namespace TestRailResultExport
                     string suite_id = arrayObject.Property("suite_id").Value.ToString();
 
                     string run_id = arrayObject.Property("id").Value.ToString();
+                    string run_name = arrayObject.Property("name").Value.ToString();
 
                     suiteIDs.Add(suite_id);
                     runIDs.Add(run_id);
+                    runNames.Add(run_name);
 
                     MainClass.Run run;
                     run.RunID = run_id;
@@ -174,9 +180,11 @@ namespace TestRailResultExport
                     string suite_id = "0";
 
                     string run_id = arrayObject.Property("id").Value.ToString();
+                    string run_name = arrayObject.Property("name").Value.ToString();
 
                     suiteIDs.Add(suite_id);
                     runIDs.Add(run_id);
+                    runNames.Add(run_name);
 
                     MainClass.Run run;
                     run.RunID = run_id;
