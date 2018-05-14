@@ -288,3 +288,4 @@ __pycache__/
 *.xsd.cs
 
 TestRail-Result-Export/client_secret.json
+*.zip

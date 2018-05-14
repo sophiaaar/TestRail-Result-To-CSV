@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 
 namespace TestRailResultExport
@@ -43,28 +44,30 @@ namespace TestRailResultExport
 
         /// <summary>
         /// Converts the status number to a string
+        /// This is done in a case-switch because these values do not change, and it avoids further slow API calls
         /// </summary>
         /// <returns>The status.</returns>
         /// <param name="rawValue">Raw value.</param>
-        public static string GetStatus(string rawValue)
+        public static string GetStatus(JArray statusArray, string rawValue)
         {
-            switch (rawValue)
+            string statusName = "";
+
+            for (int i = 0; i < statusArray.Count; i++)
             {
-                case "1":
-                    return "Passed";
-                case "2":
-                    return "Blocked";
-                case "3":
-                    return "Untested";
-                case "4":
-                    return "Retest";
-                case "5":
-                    return "Failed";
-                case "6":
-                    return "Pending";
-                default:
-                    return "Other";
+                JObject caseType = statusArray[i].ToObject<JObject>();
+
+                if (caseType.Property("id").Value.ToString() == rawValue)
+                {
+                    statusName = caseType.Property("name").Value.ToString();
+                    break;
+                }
             }
+
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+
+            statusName = textInfo.ToTitleCase(statusName);
+
+            return statusName;
         }
 
         /// <summary>
@@ -91,39 +94,26 @@ namespace TestRailResultExport
             }
         }
 
-        public static string GetCaseType(string rawValue)
+        public static string GetCaseType(JArray caseTypesArray, string rawValue)
         {
-            switch (rawValue)
+            string caseTypeName = "";
+
+            for (int i = 0; i < caseTypesArray.Count; i++)
             {
-                case "1":
-                    return "Acceptance";
-                case "2":
-                    return "Accessibility";
-                case "3":
-                    return "Automated";
-                case "4":
-                    return "Compatibility";
-                case "5":
-                    return "Destructive";
-                case "6":
-                    return "Functional";
-                case "7":
-                    return "Other";
-                case "8":
-                    return "Performance";
-                case "9":
-                    return "Regression";
-                case "10":
-                    return "Security";
-                case "11":
-                    return "Smoke and Sanity";
-                case "12":
-                    return "Usability";
-                case "13":
-                    return "Use Case";
-                default:
-                    return "Unknown";
+                JObject caseType = caseTypesArray[i].ToObject<JObject>();
+
+                if (caseType.Property("id").Value.ToString() == rawValue)
+                {
+                    caseTypeName = caseType.Property("name").Value.ToString();
+                    break;
+                }
             }
+
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+
+            caseTypeName = textInfo.ToTitleCase(caseTypeName);
+
+            return caseTypeName;
         }
 
         public static string GetEditorVersion(string rawValue)
