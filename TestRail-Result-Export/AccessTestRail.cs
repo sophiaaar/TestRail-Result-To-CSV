@@ -104,6 +104,8 @@ namespace TestRailResultExport
                 string planID = arrayObject.Property("id").Value.ToString();
                 planIds.Add(planID);
 
+                string planName = arrayObject.Property("name").Value.ToString();
+
                 foreach (string id in planIds)
                 {
                     JObject singularPlanObject = (JObject)client.SendGet("get_plan/" + id);
@@ -130,14 +132,15 @@ namespace TestRailResultExport
                                 MainClass.Run run;
                                 run.RunID = runInPlanId;
                                 run.Config = runObject.Property("config").Value.ToString();
+                                run.isCompleted = runObject.Property("is_completed").Value.ToString();
                                 runs.Add(run);
 
                                 if (!runInPlanIds.Contains(runInPlanId))
                                 {
                                     runInPlanIds.Add(runInPlanId);
 
-                                    string runName = runObject.Property("name").Value.ToString();
-                                    runNames.Add(runName);
+                                    //string runName = runObject.Property("name").Value.ToString();
+                                    runNames.Add(planName);
 
                                     string suiteInPlanId = runObject.Property("suite_id").Value.ToString();
                                     suiteInPlanIDs.Add(suiteInPlanId);
@@ -173,6 +176,7 @@ namespace TestRailResultExport
                     MainClass.Run run;
                     run.RunID = run_id;
                     run.Config = arrayObject.Property("config").Value.ToString();
+                    run.isCompleted = arrayObject.Property("is_completed").Value.ToString();
                     runs.Add(run);
                 }
                 else
@@ -189,6 +193,7 @@ namespace TestRailResultExport
                     MainClass.Run run;
                     run.RunID = run_id;
                     run.Config = arrayObject.Property("config").Value.ToString();
+                    run.isCompleted = arrayObject.Property("is_completed").Value.ToString();
                     runs.Add(run);
                 }
             }
