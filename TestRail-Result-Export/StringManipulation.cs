@@ -207,11 +207,52 @@ namespace TestRailResultExport
             }
         }
 
-        public static double ConvertTimespanStringToSeconds(string timespanString)
+        public static int ConvertTimespanStringToSeconds(string timespanString)
 		{
-			TimeSpan timeSpan = TimeSpan.Parse(timespanString);
-			double seconds = timeSpan.TotalSeconds;
-			return seconds;
+			string[] segments = timespanString.Split(' ');
+
+			int dayInSeconds = 86400;
+			int hourInSeconds = 3600;
+			int minuteInSeconds = 60;
+
+			int totalSeconds = 0;
+
+			foreach (string segment in segments)
+			{
+				if (segment.Contains("d"))
+				{
+					segment.TrimEnd('d');
+					int days = Int32.Parse(segment);
+					int daysInSeconds = days * dayInSeconds;
+					totalSeconds += daysInSeconds;
+				}
+				else if (segment.Contains("h"))
+				{
+					segment.TrimEnd('h');
+					int hours = Int32.Parse(segment);
+					int hoursInSeconds = hours * hourInSeconds;
+					totalSeconds += hoursInSeconds;
+				}
+				else if (segment.Contains("m"))
+				{
+					segment.TrimEnd('m');
+					int minutes = Int32.Parse(segment);
+					int minutesInSeconds = minutes * minuteInSeconds;
+					totalSeconds += minutesInSeconds;
+				}
+				else if (segment.Contains("s"))
+				{
+					segment.TrimEnd('s');
+					int seconds = Int32.Parse(segment);
+
+					totalSeconds += seconds;
+				}
+			}
+
+			//TimeSpan timeSpan = TimeSpan.Parse(timespanString);
+			//double seconds = timeSpan.TotalSeconds;
+
+			return totalSeconds;
 		}
     }
 }
