@@ -244,7 +244,11 @@ namespace TestRailResultExport
 
                     Run currentRun = runs.Find(x => x.RunID == runIDs[i]);
 
-					double elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
+                    double elapsedTimeInSeconds = 0.00;
+                    if (elapsedTime != "")
+                    {
+                        elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
+                    }
 
 
                     Test currentTest;
@@ -377,7 +381,11 @@ namespace TestRailResultExport
                         comment = comment.Replace(Environment.NewLine, " ");
                     }
 
-					double elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
+                    double elapsedTimeInSeconds = 0.00;
+                    if (elapsedTime != "")
+                    {
+                        elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
+                    }
 
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
