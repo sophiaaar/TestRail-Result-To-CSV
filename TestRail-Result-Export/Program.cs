@@ -48,6 +48,7 @@ namespace TestRailResultExport
             public string Comment;
             public string Config;
             public string EditorVersion;
+			public double elapsedTimeInSeconds;
             public string identifier;
         }
 
@@ -209,6 +210,7 @@ namespace TestRailResultExport
                     string defects = "";
                     string comment = "";
                     string editorVersion = "";
+					string elapsedTime = "";
 
                     JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
 
@@ -219,6 +221,7 @@ namespace TestRailResultExport
                         defects = resultObject.Property("defects").Value.ToString();
                         comment = resultObject.Property("comment").Value.ToString();
                         editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
+						elapsedTime = resultObject.Property("elapsed").Value.ToString();
                     }
 
                     if (comment.Length > 99)
@@ -241,6 +244,8 @@ namespace TestRailResultExport
 
                     Run currentRun = runs.Find(x => x.RunID == runIDs[i]);
 
+					double elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
+
 
                     Test currentTest;
                     currentTest.SuiteID = suiteIDs[i];
@@ -256,7 +261,7 @@ namespace TestRailResultExport
                     currentTest.Comment = comment;
                     currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
-
+					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
                     currentTest.identifier = caseID + "_" + ""; // config is blank
 
 					listOfTests.Add(currentTest);
@@ -318,6 +323,7 @@ namespace TestRailResultExport
                     string defects = "";
                     string comment = "";
                     string editorVersion = "";
+					string elapsedTime = "";
 
                     JArray resultsOfLatestTest = AccessTestRail.GetLatestResultsOfTest(client, testID, "1");
 
@@ -328,6 +334,7 @@ namespace TestRailResultExport
                         defects = resultObject.Property("defects").Value.ToString();
                         comment = resultObject.Property("comment").Value.ToString();
                         editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
+						elapsedTime = resultObject.Property("elapsed").Value.ToString();
                     }
 
                     // Find config for runID
@@ -370,6 +377,8 @@ namespace TestRailResultExport
                         comment = comment.Replace(Environment.NewLine, " ");
                     }
 
+					double elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
+
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
                     currentTest.SuiteName = suiteName;
@@ -384,7 +393,7 @@ namespace TestRailResultExport
                     currentTest.Comment = comment;
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
-
+					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
                     currentTest.identifier = caseID + "_" + config;
 
                     listOfTests.Add(currentTest);
@@ -454,7 +463,7 @@ namespace TestRailResultExport
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", "Suite Name", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "\n");
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}", "Suite Name", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "\n");
 			csv.Append(header);
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
@@ -469,7 +478,7 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.CaseID + "_" + testObject.TestID, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.CaseID + "_" + testObject.TestID, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString());
 
                     csv.Append(line);
                 }
@@ -486,7 +495,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", caseNotRun.SuiteName, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}", caseNotRun.SuiteName, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "0", "\n");
                     csv.Append(line);
                 }
 

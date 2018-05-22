@@ -206,5 +206,12 @@ namespace TestRailResultExport
                     return "Unknown";
             }
         }
+
+        public static double ConvertTimespanStringToSeconds(string timespanString)
+		{
+			TimeSpan timeSpan = TimeSpan.Parse(timespanString);
+			double seconds = timeSpan.TotalSeconds;
+			return seconds;
+		}
     }
 }
