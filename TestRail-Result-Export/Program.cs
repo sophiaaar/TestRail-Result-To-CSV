@@ -86,7 +86,7 @@ namespace TestRailResultExport
             //SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
-            //GetAllTests(client, 3, "139");
+            //GetAllTests(client, 3, "130");
             GetAllTests(client, 3, args[0]); //Milestone ID must be entered as cmd line arg
 
             //GoogleDrive.UploadCsvAsSpreadsheet(service);
@@ -173,8 +173,6 @@ namespace TestRailResultExport
                 string title = "";
                 string status = "";
 
-                //Test[] arrayOfTests = new Test[testsArray.Count];
-
                 for (int j = 0; j < testsArray.Count; j++)
                 {
                     JObject testObject = testsArray[j].ToObject<JObject>();
@@ -192,21 +190,6 @@ namespace TestRailResultExport
 
                     title = testObject.Property("title").Value.ToString();
                     status = StringManipulation.GetStatus(statusArray, testObject.Property("status_id").Value.ToString());
-
-                    //if (status == "Passed")
-                    //{
-                    //    numberPassed++;
-                    //}
-                    //else if (status == "Failed")
-                    //{
-                    //    numberFailed++;
-                    //}
-                    //else if (status == "Blocked")
-                    //{
-                    //    numberBlocked++;
-                    //}
-
-                    //allCaseIDs.Add(caseID);
 
 					string suiteName = "";
 
@@ -237,14 +220,6 @@ namespace TestRailResultExport
                         comment = resultObject.Property("comment").Value.ToString();
                         editorVersion = resultObject.Property("custom_editorversion").Value.ToString();
                     }
-
-
-                    //string runID = runIDs[i];
-
-                    //Run currentRun = runs.Find(r => r.RunID == runID);
-                    //string config = currentRun.Config;
-
-                    //append to csv at this point?
 
                     if (comment.Length > 99)
                     {
@@ -395,8 +370,6 @@ namespace TestRailResultExport
                         comment = comment.Replace(Environment.NewLine, " ");
                     }
 
-                    //Run currentRunInPlan = runs.Find(x => x.RunID == runInPlanIds[i]);
-
                     Test currentTest;
                     currentTest.SuiteID = suiteInPlanIDs[i];
                     currentTest.SuiteName = suiteName;
@@ -481,9 +454,8 @@ namespace TestRailResultExport
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
-            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19}", "Suite Name", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Template Status", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Previous Result", "Previous Result", "Pass Rate", "\n");
+            string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", "Suite Name", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "\n");
 			csv.Append(header);
-			int count = 0;
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
             {
@@ -495,81 +467,11 @@ namespace TestRailResultExport
                 {
                     if (i != 0)
                     {
-                        // check if the case_id is the same as the one above it
-                        if (testObject.CaseID == sortedList[i - 1].CaseID && testObject.Config == sortedList[i - 1].Config)
-                        {
-                            count++;
-                            if (count < previousResults)
-                            {
-                                string passRate = "";
-                                string line = string.Format("{0},", testObject.Status);
-                                // 2) add the status to the same list
-                                if (testObject.Status == "Passed")
-                                {
-                                    passValues.Add(100);
-                                }
-                                else
-                                {
-                                    passValues.Add(0);
-                                }
-
-                                csv.Append(line);
-                                // if (count-1)=previousResults, calculate pass rate using the small list of pass values
-                                if (count == (previousResults - 1))
-                                {
-                                    // eg sum(passvalues) / previousResults
-                                    int sumOfValues = passValues.Sum();
-                                    passRate = (sumOfValues / previousResults).ToString();
-                                    csv.Append(string.Format("{0},", passRate + "%"));
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // Some values get reset here because this is a brand new line and a new case
-                            passValues.Clear();
-                            count = 0;
-                            if (i != 0)
-                            {
-                                csv.Append("\n"); //removes the blank row between the headings and the first result
-                            }
-                            string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
-
-                            // if its a pass, value is 100
-                            if (testObject.Status == "Passed")
-                            {
-                                passValues.Add(100);
-                            }
-                            else
-                            {
-                                passValues.Add(0);
-                            }
-                            csv.Append(line);
-
-                        }
+                        csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-                    else
-                    {
-                        // Some values get reset here because this is a brand new line and a new case
-                        passValues.Clear();
-                        count = 0;
-                        if (i != 0)
-                        {
-                            csv.Append("\n"); //removes the blank row between the headings and the first result
-                        }
-                        string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", StringManipulation.GetTemplateStatus(caseObject.TemplateStatus), testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
+                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},", "\"" + testObject.SuiteName + "\"", "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.CaseID + "_" + testObject.TestID, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"");
 
-                        // if its a pass, value is 100
-                        if (testObject.Status == "Passed")
-                        {
-                            passValues.Add(100);
-                        }
-                        else
-                        {
-                            passValues.Add(0);
-                        }
-                        csv.Append(line);
-                    }
+                    csv.Append(line);
                 }
 
 			}
@@ -584,13 +486,10 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}", caseNotRun.SuiteName, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "", "Untested", "\n");
+                    string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", caseNotRun.SuiteName, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "\n");
                     csv.Append(line);
                 }
-                else
-                {
-                    //do this whole section first?
-                }
+
             }
 
 			return csv.ToString();
@@ -601,7 +500,6 @@ namespace TestRailResultExport
         /// </summary>
         private static List<Test> SortListOfTests(List<Test> listOfTests)
         {
-            //List<Test> sortedList = listOfTests.OrderByDescending(o => o.CaseID).ThenByDescending(o=>o.RunID).ToList();
             List<Test> sortedList = listOfTests.OrderBy(o => o.SuiteName).ThenBy(o => o.CaseID).ThenBy(o => o.Config).ToList();
             return sortedList;
         }
