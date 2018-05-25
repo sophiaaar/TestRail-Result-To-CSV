@@ -221,29 +221,29 @@ namespace TestRailResultExport
 			{
 				if (segment.Contains("d"))
 				{
-					segment.TrimEnd('d');
-					int days = Int32.Parse(segment);
+					string number = segment.TrimEnd('d');
+					int days = Int32.Parse(number);
 					int daysInSeconds = days * dayInSeconds;
 					totalSeconds += daysInSeconds;
 				}
 				else if (segment.Contains("h"))
 				{
-					segment.TrimEnd('h');
-					int hours = Int32.Parse(segment);
+                    string number = segment.TrimEnd('h');
+					int hours = Int32.Parse(number);
 					int hoursInSeconds = hours * hourInSeconds;
 					totalSeconds += hoursInSeconds;
 				}
 				else if (segment.Contains("m"))
 				{
-					segment.TrimEnd('m');
-					int minutes = Int32.Parse(segment);
+                    string number = segment.TrimEnd('m');
+					int minutes = Int32.Parse(number);
 					int minutesInSeconds = minutes * minuteInSeconds;
 					totalSeconds += minutesInSeconds;
 				}
 				else if (segment.Contains("s"))
 				{
-					segment.TrimEnd('s');
-					int seconds = Int32.Parse(segment);
+                    string number = segment.TrimEnd('s');
+					int seconds = Int32.Parse(number);
 
 					totalSeconds += seconds;
 				}
