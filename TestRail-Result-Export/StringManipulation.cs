@@ -42,12 +42,6 @@ namespace TestRailResultExport
             }
         }
 
-        /// <summary>
-        /// Converts the status number to a string
-        /// This is done in a case-switch because these values do not change, and it avoids further slow API calls
-        /// </summary>
-        /// <returns>The status.</returns>
-        /// <param name="rawValue">Raw value.</param>
         public static string GetStatus(JArray statusArray, string rawValue)
         {
             string statusName = "";
@@ -59,6 +53,11 @@ namespace TestRailResultExport
                 if (caseType.Property("id").Value.ToString() == rawValue)
                 {
                     statusName = caseType.Property("name").Value.ToString();
+
+                    if (statusName == "untested")
+                    {
+                        statusName = "In Progress";
+                    }
                     break;
                 }
             }
