@@ -114,8 +114,8 @@ namespace TestRailResultExport
             Console.WriteLine("Getting data from TestRail");
             Console.WriteLine("Milestone ID: " + milestoneID);
 
-            JArray c = AccessTestRail.GetRunsForMilestone(client, milestoneID);
-            JArray planArray = AccessTestRail.GetPlansForMilestone(client, milestoneID);
+            JArray c = AccessTestRail.GetRunsForMilestone(client, projectID, milestoneID);
+            JArray planArray = AccessTestRail.GetPlansForMilestone(client, projectID, milestoneID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
             JArray caseTypes = AccessTestRail.GetCaseTypes(client); // This JArray will be used when evaluating case types
