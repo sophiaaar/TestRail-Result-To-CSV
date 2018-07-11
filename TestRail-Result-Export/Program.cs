@@ -88,7 +88,7 @@ namespace TestRailResultExport
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
             //GetAllTests(client, 3, "130");
-            GetAllTests(client, 3, args[0]); //Milestone ID must be entered as cmd line arg
+            GetAllTests(client, 3, args[0], args[1]); //Milestone ID and project ID must be entered as cmd line arg
 
             //GoogleDrive.UploadCsvAsSpreadsheet(service);
             //GoogleDrive.CopyToSheet(sheetsService);
@@ -107,7 +107,7 @@ namespace TestRailResultExport
         /// Retrieves TestRail tests (both in and out of plans)
         /// </summary>
         /// <param name="previousResults">Number of previous results to include.</param>
-		private static void GetAllTests(APIClient client, int previousResults, string milestoneID)
+		private static void GetAllTests(APIClient client, int previousResults, string milestoneID, string projectID)
 		{
             //Console.WriteLine("Enter milestone ID: ");
             //milestoneID = Console.ReadLine();
@@ -127,7 +127,7 @@ namespace TestRailResultExport
             List<Test> listOfTests = new List<Test>();
             List<Suite> listOfSuites = new List<Suite>();
 
-            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, "2");
+            JArray suitesArray = AccessTestRail.GetSuitesInProject(client, projectID);
 
             for (int i = 0; i < suitesArray.Count; i++)
             {
@@ -141,7 +141,7 @@ namespace TestRailResultExport
                 listOfSuites.Add(newSuite);
 
 
-                JArray casesArray = AccessTestRail.GetCasesInSuite(client, "2", id);
+                JArray casesArray = AccessTestRail.GetCasesInSuite(client, projectID, id);
                 listOfCases = CreateListOfCases(client, caseTypes, casesArray, listOfCases, id, suiteName);
             }
 
@@ -503,7 +503,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "", "", "", "Untested", "0", "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "Untested", "0", "\n");
                     csv.Append(line);
                 }
 
