@@ -35,6 +35,7 @@ namespace TestRailResultExport
 
         public struct Test
         {
+			public string Area;
             public string SuiteID;
             public string SuiteName;
             public int RunID;
@@ -54,6 +55,7 @@ namespace TestRailResultExport
 
         public struct Case
         {
+			public string Area;
             public string SuiteID;
             public string SuiteName;
             public string CreatedOn;
@@ -173,11 +175,13 @@ namespace TestRailResultExport
                 int caseID = 0;
                 string title = "";
                 string status = "";
+				string area = "";
 
                 for (int j = 0; j < testsArray.Count; j++)
                 {
                     JObject testObject = testsArray[j].ToObject<JObject>();
                     testID = testObject.Property("id").Value.ToString();
+					area = testObject.Property("area").Value.ToString();
 
                     if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
                     {
@@ -252,6 +256,7 @@ namespace TestRailResultExport
 
 
                     Test currentTest;
+					currentTest.Area = area;
                     currentTest.SuiteID = suiteIDs[i];
                     currentTest.SuiteName = suiteName;
                     currentTest.RunID = Int32.Parse(runIDs[i]);
@@ -281,12 +286,14 @@ namespace TestRailResultExport
 				int caseID = 0;
 				string title = "";
 				string status = "";
+				string area = "";
 
 				for (int j = 0; j < testsArray.Count; j++)
 				{
 					JObject testObject = testsArray[j].ToObject<JObject>();
 
                     testID = testObject.Property("id").Value.ToString();
+					area = testObject.Property("area").Value.ToString();
 
                     if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
                     {
@@ -388,6 +395,7 @@ namespace TestRailResultExport
                     }
 
                     Test currentTest;
+					currentTest.Area = area;
                     currentTest.SuiteID = suiteInPlanIDs[i];
                     currentTest.SuiteName = suiteName;
                     currentTest.RunID = Int32.Parse(runInPlanIds[i]);
@@ -438,6 +446,9 @@ namespace TestRailResultExport
                 string createdOn = arrayObject.Property("created_on").Value.ToString();
                 string updatedOn = arrayObject.Property("updated_on").Value.ToString();
 
+
+				string area = arrayObject.Property("area").Value.ToString();
+
                 JObject section = AccessTestRail.GetSection(client, sectionID);
                 string sectionName = AccessTestRail.GetSectionName(section);
 
@@ -449,6 +460,7 @@ namespace TestRailResultExport
                 }
 
                 Case newCase;
+				newCase.Area = area;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
                 //newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).Date.ToString();
@@ -471,7 +483,7 @@ namespace TestRailResultExport
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "\n");
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "\n");
 			csv.Append(header);
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
@@ -486,7 +498,7 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},", "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString());
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},", testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString());
 
                     csv.Append(line);
                 }
@@ -503,7 +515,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "Untested", "0", "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}", caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "Untested", "0", "\n");
                     csv.Append(line);
                 }
 
