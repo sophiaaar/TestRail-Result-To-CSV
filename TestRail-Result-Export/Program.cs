@@ -84,6 +84,7 @@ namespace TestRailResultExport
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
 
+
             //SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
@@ -113,6 +114,7 @@ namespace TestRailResultExport
             //milestoneID = Console.ReadLine();
             Console.WriteLine("Getting data from TestRail");
             Console.WriteLine("Milestone ID: " + milestoneID);
+            Console.WriteLine("Project ID: " + projectID);
 
             JArray c = AccessTestRail.GetRunsForMilestone(client, projectID, milestoneID);
             JArray planArray = AccessTestRail.GetPlansForMilestone(client, projectID, milestoneID);
