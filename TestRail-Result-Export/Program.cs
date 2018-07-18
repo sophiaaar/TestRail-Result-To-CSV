@@ -183,7 +183,11 @@ namespace TestRailResultExport
                 {
                     JObject testObject = testsArray[j].ToObject<JObject>();
                     testID = testObject.Property("id").Value.ToString();
-					area = testObject.Property("area").Value.ToString();
+
+                    if (testObject.Property("area") != null && testObject.Property("area").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("area").Value.ToString()))
+                    {
+                        area = testObject.Property("area").Value.ToString();
+                    }
 
                     if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
                     {
@@ -295,7 +299,10 @@ namespace TestRailResultExport
 					JObject testObject = testsArray[j].ToObject<JObject>();
 
                     testID = testObject.Property("id").Value.ToString();
-					area = testObject.Property("area").Value.ToString();
+                    if (testObject.Property("area") != null && testObject.Property("area").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("area").Value.ToString()))
+                    {
+                        area = testObject.Property("area").Value.ToString();
+                    }
 
                     if (testObject.Property("case_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("case_id").Value.ToString()))
                     {
@@ -448,8 +455,12 @@ namespace TestRailResultExport
                 string createdOn = arrayObject.Property("created_on").Value.ToString();
                 string updatedOn = arrayObject.Property("updated_on").Value.ToString();
 
-
-				string area = arrayObject.Property("area").Value.ToString();
+                string area = "";
+                if (arrayObject.Property("area") != null && arrayObject.Property("area").Value != null && !string.IsNullOrWhiteSpace(arrayObject.Property("area").Value.ToString()))
+                {
+                    area = arrayObject.Property("area").Value.ToString();
+                }
+                //string area = arrayObject.Property("area").Value.ToString();
 
                 JObject section = AccessTestRail.GetSection(client, sectionID);
                 string sectionName = AccessTestRail.GetSectionName(section);
