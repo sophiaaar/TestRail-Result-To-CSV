@@ -13,10 +13,20 @@ namespace TestRailResultExport
         {
             return (JArray)client.SendGet("get_runs/" + projectID + "&milestone_id=" + milestoneID);
         }
+        
+		public static JArray GetRuns(APIClient client, string projectID)
+        {
+            return (JArray)client.SendGet("get_runs/" + projectID);
+        }
 
         public static JArray GetPlansForMilestone(APIClient client, string projectID, string milestoneID)
         {
             return (JArray)client.SendGet("get_plans/" + projectID + "&milestone_id=" + milestoneID);
+        }
+        
+		public static JArray GetPlans(APIClient client, string projectID)
+        {
+            return (JArray)client.SendGet("get_plans/" + projectID);
         }
 
         public static JArray GetTestsInRun(APIClient client, string runID)

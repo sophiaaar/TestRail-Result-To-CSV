@@ -15,7 +15,7 @@ namespace TestRailResultExport
 {
 	public class MainClass
 	{
-		public static string milestoneID = "";
+		//public static string milestoneID = "";
 		public static List<string> suiteIDs = new List<string>();
         public static List<string> suiteNames = new List<string>();
         public static List<string> suiteInPlanIDs = new List<string>();
@@ -92,7 +92,7 @@ namespace TestRailResultExport
             //DriveService service = GoogleDrive.ConnectToGoogleDrive();
 
             //GetAllTests(client, 3, "130");
-            GetAllTests(client, 3, args[0], args[1]); //Milestone ID and project ID must be entered as cmd line arg
+            GetAllTests(client, args[0]); //Milestone ID and project ID must be entered as cmd line arg
 
             //GoogleDrive.UploadCsvAsSpreadsheet(service);
             //GoogleDrive.CopyToSheet(sheetsService);
@@ -107,20 +107,16 @@ namespace TestRailResultExport
 			return client;
 		}
 
-        /// <summary>
-        /// Retrieves TestRail tests (both in and out of plans)
-        /// </summary>
-        /// <param name="previousResults">Number of previous results to include.</param>
-		private static void GetAllTests(APIClient client, int previousResults, string milestoneID, string projectID)
+		private static void GetAllTests(APIClient client, string projectID)
 		{
             //Console.WriteLine("Enter milestone ID: ");
             //milestoneID = Console.ReadLine();
             Console.WriteLine("Getting data from TestRail");
-            Console.WriteLine("Milestone ID: " + milestoneID);
+            //Console.WriteLine("Milestone ID: " + milestoneID);
             Console.WriteLine("Project ID: " + projectID);
 
-            JArray c = AccessTestRail.GetRunsForMilestone(client, projectID, milestoneID);
-            JArray planArray = AccessTestRail.GetPlansForMilestone(client, projectID, milestoneID);
+            JArray c = AccessTestRail.GetRuns(client, projectID);
+            JArray planArray = AccessTestRail.GetPlans(client, projectID);
             //The response includes an array of test plans. Each test plan in this list follows the same format as get_plan, except for the entries field which is not included in the response.
 
             JArray caseTypes = AccessTestRail.GetCaseTypes(client); // This JArray will be used when evaluating case types
@@ -159,7 +155,7 @@ namespace TestRailResultExport
 
 			try
 			{
-                ostrm = new FileStream("Tests" + milestoneID + ".csv", FileMode.OpenOrCreate, FileAccess.Write);
+				ostrm = new FileStream("Tests" + projectID + ".csv", FileMode.OpenOrCreate, FileAccess.Write);
 				writer = new StreamWriter(ostrm);
 			}
 			catch (Exception e)
@@ -434,7 +430,7 @@ namespace TestRailResultExport
 			}
             List<Test> sortedList = SortListOfTests(listOfTests);
 
-            string csvOfTests = CreateCSVOfTests(sortedList, previousResults, listOfCases);
+            string csvOfTests = CreateCSVOfTests(sortedList, listOfCases);
             Console.WriteLine(csvOfTests);
 
             //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults, listOfCases);
@@ -499,7 +495,7 @@ namespace TestRailResultExport
             return listOfCases;
         }
 
-        public static string CreateCSVOfTests(List<Test> sortedList, int previousResults, List<Case> listOfCases)
+        public static string CreateCSVOfTests(List<Test> sortedList, List<Case> listOfCases)
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
