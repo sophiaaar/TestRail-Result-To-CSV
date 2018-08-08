@@ -49,6 +49,8 @@ namespace TestRailResultExport
             public string Comment;
             public string Config;
             public string EditorVersion;
+			public double Estimate;
+			public double EstimateForecast;
 			public double elapsedTimeInSeconds;
 			public string CompletedDate;
 			public string MilestoneID;
@@ -68,6 +70,8 @@ namespace TestRailResultExport
             public string Status;
             public string Type;
             public string TemplateStatus;
+			public double Estimate;
+            public double EstimateForecast;
         }
 
         public struct Suite
@@ -177,6 +181,8 @@ namespace TestRailResultExport
                 string status = "";
 				string area = "";
 				string milestoneID = "";
+				string estimate = "";
+				string estimateForecast = "";
 
                 for (int j = 0; j < testsArray.Count; j++)
                 {
@@ -196,6 +202,26 @@ namespace TestRailResultExport
 					if (testObject.Property("milestone_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("milestone_id").Value.ToString()))
                     {
 						milestoneID = testObject.Property("milestone_id").Value.ToString();
+                    }
+
+					int estimateInSeconds = 0;
+					if (testObject.Property("estimate").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("estimate").Value.ToString()))
+                    {
+                        estimate = testObject.Property("estimate").Value.ToString();
+						if (estimate != "")
+                        {
+							estimateInSeconds = StringManipulation.ConvertTimespanStringToSeconds(estimate);
+                        }
+                    }
+
+					int estimateForecastInSeconds = 0;
+                    if (testObject.Property("estimate_forecast").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("estimate_forecast").Value.ToString()))
+                    {
+						estimateForecast = testObject.Property("estimate_forecast").Value.ToString();
+						if (estimateForecast != "")
+                        {
+							estimateForecastInSeconds = StringManipulation.ConvertTimespanStringToSeconds(estimateForecast);
+                        }
                     }
 
                     if (!caseIDsInMilestone.Contains(caseID))
@@ -283,6 +309,8 @@ namespace TestRailResultExport
                     currentTest.Comment = comment;
                     currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
+					currentTest.Estimate = estimateInSeconds;
+					currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
 					currentTest.CompletedDate = completedDate;
 					currentTest.MilestoneID = milestoneID;
@@ -303,6 +331,8 @@ namespace TestRailResultExport
 				string status = "";
 				string area = "";
 				string milestoneID = "";
+				string estimate = "";
+                string estimateForecast = "";
 
 				for (int j = 0; j < testsArray.Count; j++)
 				{
@@ -322,6 +352,26 @@ namespace TestRailResultExport
 					if (testObject.Property("milestone_id").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("milestone_id").Value.ToString()))
                     {
                         milestoneID = testObject.Property("milestone_id").Value.ToString();
+                    }
+
+					int estimateInSeconds = 0;
+                    if (testObject.Property("estimate").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("estimate").Value.ToString()))
+                    {
+                        estimate = testObject.Property("estimate").Value.ToString();
+                        if (estimate != "")
+                        {
+                            estimateInSeconds = StringManipulation.ConvertTimespanStringToSeconds(estimate);
+                        }
+                    }
+
+                    int estimateForecastInSeconds = 0;
+                    if (testObject.Property("estimate_forecast").Value != null && !string.IsNullOrWhiteSpace(testObject.Property("estimate_forecast").Value.ToString()))
+                    {
+                        estimateForecast = testObject.Property("estimate_forecast").Value.ToString();
+                        if (estimateForecast != "")
+                        {
+                            estimateForecastInSeconds = StringManipulation.ConvertTimespanStringToSeconds(estimateForecast);
+                        }
                     }
 
                     caseIDsInMilestone.Add(caseID);
@@ -436,6 +486,8 @@ namespace TestRailResultExport
                     currentTest.Comment = comment;
                     currentTest.Config = config;
                     currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
+					currentTest.Estimate = estimateInSeconds;
+                    currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
 					currentTest.CompletedDate = completedDate;
 					currentTest.MilestoneID = milestoneID;
@@ -474,6 +526,8 @@ namespace TestRailResultExport
 
                 string createdOn = arrayObject.Property("created_on").Value.ToString();
                 string updatedOn = arrayObject.Property("updated_on").Value.ToString();
+				string estimate = "";
+				string estimateForecast = "";
 
                 string area = "";
                 if (arrayObject.Property("area") != null && arrayObject.Property("area").Value != null && !string.IsNullOrWhiteSpace(arrayObject.Property("area").Value.ToString()))
@@ -492,6 +546,26 @@ namespace TestRailResultExport
                     sectionName = sb.ToString();
                 }
 
+				int estimateInSeconds = 0;
+				if (arrayObject.Property("estimate").Value != null && !string.IsNullOrWhiteSpace(arrayObject.Property("estimate").Value.ToString()))
+                {
+					estimate = arrayObject.Property("estimate").Value.ToString();
+                    if (estimate != "")
+                    {
+                        estimateInSeconds = StringManipulation.ConvertTimespanStringToSeconds(estimate);
+                    }
+                }
+
+                int estimateForecastInSeconds = 0;
+				if (arrayObject.Property("estimate_forecast").Value != null && !string.IsNullOrWhiteSpace(arrayObject.Property("estimate_forecast").Value.ToString()))
+                {
+					estimateForecast = arrayObject.Property("estimate_forecast").Value.ToString();
+                    if (estimateForecast != "")
+                    {
+                        estimateForecastInSeconds = StringManipulation.ConvertTimespanStringToSeconds(estimateForecast);
+                    }
+                }
+
                 Case newCase;
 				newCase.Area = area;
                 newCase.SuiteID = suiteID;
@@ -506,6 +580,8 @@ namespace TestRailResultExport
                 newCase.Status = StringManipulation.IsInvalid(arrayObject);
                 newCase.Type = StringManipulation.GetCaseType(caseTypes, caseType);
                 newCase.TemplateStatus = "";
+				newCase.Estimate = estimateInSeconds;
+				newCase.EstimateForecast = estimateForecastInSeconds;
 
                 listOfCases.Add(newCase);
             }
@@ -516,7 +592,7 @@ namespace TestRailResultExport
 		{
             //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Milestone ID", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "\n");
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22}", "Milestone ID", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "\n");
 			csv.Append(header);
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
@@ -531,7 +607,7 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},", testObject.MilestoneID, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString());
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},", testObject.MilestoneID, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast);
 
                     csv.Append(line);
                 }
@@ -548,7 +624,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "", caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22}", "", caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, "\n");
                     csv.Append(line);
                 }
 
