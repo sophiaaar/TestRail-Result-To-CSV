@@ -85,6 +85,7 @@ namespace TestRailResultExport
             public string RunID;
             public string Config;
             public string isCompleted;
+			public string MilestoneID;
         }
 
 		public static void Main(string[] args)
@@ -313,7 +314,7 @@ namespace TestRailResultExport
 					currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
 					currentTest.CompletedDate = completedDate;
-					currentTest.MilestoneID = milestoneID;
+					currentTest.MilestoneID = currentRun.MilestoneID;
                     currentTest.identifier = caseID + "_" + testID;
 
 					listOfTests.Add(currentTest);
@@ -490,7 +491,7 @@ namespace TestRailResultExport
                     currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
 					currentTest.CompletedDate = completedDate;
-					currentTest.MilestoneID = milestoneID;
+					currentTest.MilestoneID = currentRun.MilestoneID;
                     currentTest.identifier = caseID + "_" + testID;
 
                     listOfTests.Add(currentTest);
@@ -521,7 +522,6 @@ namespace TestRailResultExport
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
                 string caseType = arrayObject.Property("type_id").Value.ToString();
-                //string templateStatus = arrayObject.Property("custom_case_status").Value.ToString();
                 string sectionID = arrayObject.Property("section_id").Value.ToString();
 
                 string createdOn = arrayObject.Property("created_on").Value.ToString();
@@ -570,8 +570,6 @@ namespace TestRailResultExport
 				newCase.Area = area;
                 newCase.SuiteID = suiteID;
                 newCase.SuiteName = suiteName;
-                //newCase.CreatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(createdOn)).Date.ToString();
-                //newCase.UpdatedOn = DateTimeOffset.FromUnixTimeSeconds(long.Parse(updatedOn)).Date.ToString();
                 newCase.CreatedOn = createdOn;
                 newCase.UpdatedOn = updatedOn;
                 newCase.Section = sectionName;
@@ -590,7 +588,6 @@ namespace TestRailResultExport
 
         public static string CreateCSVOfTests(List<Test> sortedList, List<Case> listOfCases)
 		{
-            //Console.WriteLine("Creating CSV");
             StringBuilder csv = new StringBuilder();
 			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22}", "Milestone ID", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "\n");
 			csv.Append(header);

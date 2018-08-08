@@ -143,6 +143,7 @@ namespace TestRailResultExport
                                 run.RunID = runInPlanId;
                                 run.Config = runObject.Property("config").Value.ToString();
                                 run.isCompleted = runObject.Property("is_completed").Value.ToString();
+								run.MilestoneID = runObject.Property("milestone_id").Value.ToString();
                                 runs.Add(run);
 
                                 if (!runInPlanIds.Contains(runInPlanId))
@@ -187,6 +188,7 @@ namespace TestRailResultExport
                     run.RunID = run_id;
                     run.Config = arrayObject.Property("config").Value.ToString();
                     run.isCompleted = arrayObject.Property("is_completed").Value.ToString();
+					run.MilestoneID = arrayObject.Property("milestone_id").Value.ToString();
                     runs.Add(run);
                 }
                 else
@@ -204,6 +206,7 @@ namespace TestRailResultExport
                     run.RunID = run_id;
                     run.Config = arrayObject.Property("config").Value.ToString();
                     run.isCompleted = arrayObject.Property("is_completed").Value.ToString();
+					run.MilestoneID = arrayObject.Property("milestone_id").Value.ToString();
                     runs.Add(run);
                 }
             }
