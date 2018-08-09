@@ -54,6 +54,7 @@ namespace TestRailResultExport
 			public double elapsedTimeInSeconds;
 			public string CompletedDate;
 			public string MilestoneID;
+			public string MilestoneName;
             public string identifier;
         }
 
@@ -87,6 +88,12 @@ namespace TestRailResultExport
             public string isCompleted;
 			public string MilestoneID;
         }
+
+		public struct Milestone
+		{
+			public string MilestoneID;
+			public string MilestoneName;
+		}
 
 		public static void Main(string[] args)
 		{
@@ -127,6 +134,23 @@ namespace TestRailResultExport
 
             JArray caseTypes = AccessTestRail.GetCaseTypes(client); // This JArray will be used when evaluating case types
             JArray statusArray = AccessTestRail.GetStatuses(client); // This will be used for evaluating status IDs
+
+			JArray milestonesArray = AccessTestRail.GetMilestones(client, projectID);
+
+			JObject project = AccessTestRail.GetProject(client, projectID);
+			string projectName = project.Property("name").Value.ToString();
+
+			List<Milestone> listOfMilestones = new List<Milestone>();
+			for (int k = 0; k < milestonesArray.Count; k++)
+            {
+                JObject milestoneObject = milestonesArray[k].ToObject<JObject>();
+
+				Milestone milestone;
+                milestone.MilestoneID = milestoneObject.Property("id").Value.ToString();
+                milestone.MilestoneName = milestoneObject.Property("name").Value.ToString();
+
+				listOfMilestones.Add(milestone);
+            }
 
             List<string> runInPlanIds = AccessTestRail.GetRunsInPlan(planArray, client, suiteInPlanIDs, runNames, runs);
 
@@ -294,6 +318,24 @@ namespace TestRailResultExport
                         elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
                     }
 
+					string milestoneName = "";
+					Milestone currentMilestone = listOfMilestones.Find(m => m.MilestoneID == currentRun.MilestoneID);
+
+					if (!string.IsNullOrWhiteSpace(currentRun.MilestoneID))
+                    {
+						milestoneName = currentMilestone.MilestoneName;
+                    }
+                    else
+                    {
+                        string milestoneString = "";
+                        if (projectName.Contains("Unity"))
+                        {
+                            milestoneString = projectName.Remove(0, 6);
+                        }
+                        milestoneName = milestoneString;
+                    }
+
+
 
                     Test currentTest;
 					currentTest.Area = area;
@@ -315,6 +357,7 @@ namespace TestRailResultExport
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
 					currentTest.CompletedDate = completedDate;
 					currentTest.MilestoneID = currentRun.MilestoneID;
+					currentTest.MilestoneName = milestoneName;
                     currentTest.identifier = caseID + "_" + testID;
 
 					listOfTests.Add(currentTest);
@@ -472,6 +515,23 @@ namespace TestRailResultExport
                         elapsedTimeInSeconds = StringManipulation.ConvertTimespanStringToSeconds(elapsedTime);
                     }
 
+					string milestoneName = "";
+                    Milestone currentMilestone = listOfMilestones.Find(m => m.MilestoneID == currentRun.MilestoneID);
+
+                    if (!string.IsNullOrWhiteSpace(currentRun.MilestoneID))
+                    {
+                        milestoneName = currentMilestone.MilestoneName;
+                    }
+                    else
+                    {
+                        string milestoneString = "";
+                        if (projectName.Contains("Unity"))
+                        {
+                            milestoneString = projectName.Remove(0, 6);
+                        }
+                        milestoneName = milestoneString;
+                    }
+
                     Test currentTest;
 					currentTest.Area = area;
                     currentTest.SuiteID = suiteInPlanIDs[i];
@@ -492,6 +552,7 @@ namespace TestRailResultExport
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
 					currentTest.CompletedDate = completedDate;
 					currentTest.MilestoneID = currentRun.MilestoneID;
+					currentTest.MilestoneName = milestoneName;
                     currentTest.identifier = caseID + "_" + testID;
 
                     listOfTests.Add(currentTest);
@@ -589,7 +650,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTests(List<Test> sortedList, List<Case> listOfCases)
 		{
             StringBuilder csv = new StringBuilder();
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22}", "Milestone ID", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "\n");
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23}", "Milestone ID", "Milestone Name", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "\n");
 			csv.Append(header);
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
@@ -604,7 +665,7 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},", testObject.MilestoneID, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast);
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},", testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast);
 
                     csv.Append(line);
                 }
@@ -621,7 +682,7 @@ namespace TestRailResultExport
 
                     Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22}", "", caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23}", "", "", caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, "\n");
                     csv.Append(line);
                 }
 

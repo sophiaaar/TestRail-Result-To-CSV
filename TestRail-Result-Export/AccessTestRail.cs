@@ -29,6 +29,16 @@ namespace TestRailResultExport
             return (JArray)client.SendGet("get_plans/" + projectID);
         }
 
+		public static JArray GetMilestones(APIClient client, string projectID)
+        {
+            return (JArray)client.SendGet("get_milestones/" + projectID);
+        }
+
+		public static JObject GetProject(APIClient client, string projectID)
+        {
+			return (JObject)client.SendGet("get_project/" + projectID);
+        }
+
         public static JArray GetTestsInRun(APIClient client, string runID)
         {
             return (JArray)client.SendGet("get_tests/" + runID);
@@ -54,7 +64,7 @@ namespace TestRailResultExport
             return (JArray)client.SendGet("get_results_for_case/" + runID + "/" + caseID + "&limit=" + amountOfResultsToShow);
         }
 
-        public static JObject GetCase (APIClient client, string caseID)
+        public static JObject GetCase(APIClient client, string caseID)
         {
             return (JObject)client.SendGet($"get_case/" + caseID);
         }
