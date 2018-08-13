@@ -34,6 +34,11 @@ namespace TestRailResultExport
             return (JArray)client.SendGet("get_milestones/" + projectID);
         }
 
+		public static JObject GetMilestone(APIClient client, string milestoneID)
+        {
+			return (JObject)client.SendGet("get_milestone/" + milestoneID);
+        }
+
 		public static JObject GetProject(APIClient client, string projectID)
         {
 			return (JObject)client.SendGet("get_project/" + projectID);
