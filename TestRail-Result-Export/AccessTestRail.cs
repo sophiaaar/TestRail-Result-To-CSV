@@ -240,10 +240,7 @@ namespace TestRailResultExport
 					JProperty configs = resultObject.Property("configs");
                     
 					foreach (JArray child in configs.OfType<JArray>())
-					//for (int k = 0; k < configs.OfType<JArray>().Count<JArray>(); k++)
 					{
-						//JObject context = (JObject)child["context"];
-						//JObject contextOuter = (JObject)child[0];
 						for (int k = 0; k < child.Count; k++)
 						{
 							JObject contextInner = (JObject)child[k];
@@ -274,23 +271,6 @@ namespace TestRailResultExport
                                                 return name;
                                             }
                                         }
-
-										//for (int n = 0; n < options.Count; n++)
-										//{
-
-										//	JArray versions = (JArray)options["items"];
-										//	string[] editorVersions = versions.ToString().Split('\n');
-										//	foreach (string editorVersion in editorVersions)
-										//	{
-										//		string[] values = editorVersion.Split(',');
-										//		string id = values[0];
-										//		string name = values[1];
-										//		if (id == rawValue)
-										//		{
-										//			return name;
-										//		}
-										//	}
-										//}
 									}
 								}
 							}

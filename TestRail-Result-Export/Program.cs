@@ -75,6 +75,7 @@ namespace TestRailResultExport
             public double EstimateForecast;
 			public string MilestoneName;
 			public string UniqueCaseIdentifier; //this is to identify the case when it is moved between projects and the ID changes
+			public string isRetest;
         }
 
         public struct Suite
@@ -568,9 +569,9 @@ namespace TestRailResultExport
 				}
 
 			}
-            List<Test> sortedList = SortListOfTests(listOfTests);
+            //List<Test> sortedList = SortListOfTests(listOfTests);
 
-            string csvOfTests = CreateCSVOfTests(sortedList, listOfCases);
+			string csvOfTests = CreateCSVOfTests(listOfTests, listOfCases);
             Console.WriteLine(csvOfTests);
 
             //GoogleSheets.OutputTestsToGoogleSheets(sortedList, previousResults, listOfCases);
@@ -637,6 +638,8 @@ namespace TestRailResultExport
                 }
 
 				string caseIdentifier = caseName.Replace(" ", "").Replace(",", "") + "_" + sectionName.Replace(" ", "").Replace(",", "");
+
+				bool isRetest = listOfCases.Any(c => c.CaseID == Int32.Parse(caseID));
                 
 
                 Case newCase;
@@ -655,6 +658,7 @@ namespace TestRailResultExport
 				newCase.EstimateForecast = estimateForecastInSeconds;
 				newCase.MilestoneName = milestoneName;
 				newCase.UniqueCaseIdentifier = caseIdentifier;
+				newCase.isRetest = isRetest.ToString();
 
                 listOfCases.Add(newCase);
             }
@@ -664,7 +668,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTests(List<Test> sortedList, List<Case> listOfCases)
 		{
             StringBuilder csv = new StringBuilder();
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24}", "Unique Case", "Milestone ID", "Milestone Name", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "\n");
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25}", "Unique Case", "Milestone ID", "Milestone Name", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "is Retest", "\n");
 			csv.Append(header);
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
@@ -679,7 +683,7 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},", caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast);
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},", caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, caseObject.isRetest);
 
                     csv.Append(line);
                 }
@@ -692,11 +696,11 @@ namespace TestRailResultExport
             {
                 if (!caseIDsInMilestone.Contains(allCaseIDs[k]))
                 {
-                    List<Case> sortedListOfCases = SortListOfCases(listOfCases);
+                    //List<Case> sortedListOfCases = SortListOfCases(listOfCases);
 
-                    Case caseNotRun = sortedListOfCases.Find(x => x.CaseID == allCaseIDs[k]);
+					Case caseNotRun = listOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24}", caseNotRun.UniqueCaseIdentifier, "", caseNotRun.MilestoneName, caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25}", caseNotRun.UniqueCaseIdentifier, "", caseNotRun.MilestoneName, caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, caseNotRun.isRetest, "\n");
                     csv.Append(line);
                 }
 
@@ -705,19 +709,19 @@ namespace TestRailResultExport
 			return csv.ToString();
 		}
 
-        /// <summary>
-        /// Sorts the list of tests by case_id and then run_id
-        /// </summary>
-        private static List<Test> SortListOfTests(List<Test> listOfTests)
-        {
-            List<Test> sortedList = listOfTests.OrderBy(o => o.SuiteName).ThenBy(o => o.CaseID).ThenBy(o => o.Config).ToList();
-            return sortedList;
-        }
+        ///// <summary>
+        ///// Sorts the list of tests by case_id and then run_id
+        ///// </summary>
+        //private static List<Test> SortListOfTests(List<Test> listOfTests)
+        //{
+        //    List<Test> sortedList = listOfTests.OrderBy(o => o.SuiteName).ThenBy(o => o.CaseID).ThenBy(o => o.Config).ToList();
+        //    return sortedList;
+        //}
 
-        private static List<Case> SortListOfCases(List<Case> listOfCases)
-        {
-            List<Case> sortedList = listOfCases.OrderByDescending(o => o.CaseID).ToList();
-            return sortedList;
-        }
+        //private static List<Case> SortListOfCases(List<Case> listOfCases)
+        //{
+        //    List<Case> sortedList = listOfCases.OrderByDescending(o => o.CaseID).ToList();
+        //    return sortedList;
+        //}
 	}
 }
