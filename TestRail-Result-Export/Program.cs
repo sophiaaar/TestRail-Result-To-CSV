@@ -344,6 +344,17 @@ namespace TestRailResultExport
                         milestoneName = milestoneString;
                     }               
 
+					int completedInt = 0;
+
+                    if (completedDate == "")
+                    {
+                        completedInt = 0;
+                    }
+                    else
+                    {
+                        completedInt = Int32.Parse(completedDate);
+                    }
+
 
                     Test currentTest;
 					currentTest.Area = area;
@@ -363,7 +374,7 @@ namespace TestRailResultExport
 					currentTest.Estimate = estimateInSeconds;
 					currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
-					currentTest.CompletedDate = Int32.Parse(completedDate);
+					currentTest.CompletedDate = completedInt;
 					currentTest.MilestoneID = currentRun.MilestoneID;
 					currentTest.MilestoneName = milestoneName;
                     currentTest.identifier = caseID + "_" + testID;
@@ -542,6 +553,17 @@ namespace TestRailResultExport
 
 					}
 
+					int completedInt = 0;
+
+					if (completedDate == "")
+					{
+						completedInt = 0;
+					}
+					else
+					{
+						completedInt = Int32.Parse(completedDate);
+					}
+
                     Test currentTest;
 					currentTest.Area = area;
                     currentTest.SuiteID = suiteInPlanIDs[i];
@@ -560,7 +582,7 @@ namespace TestRailResultExport
 					currentTest.Estimate = estimateInSeconds;
                     currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
-					currentTest.CompletedDate = Int32.Parse(completedDate);
+					currentTest.CompletedDate = completedInt;
 					currentTest.MilestoneID = currentRun.MilestoneID;
 					currentTest.MilestoneName = milestoneName;
                     currentTest.identifier = caseID + "_" + testID;
