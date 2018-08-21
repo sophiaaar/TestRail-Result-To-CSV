@@ -115,7 +115,7 @@ namespace TestRailResultExport
             return caseTypeName;
         }
 
-        public static string GetEditorVersion(string rawValue)
+		public static string GetEditorVersion(string rawValue)
         {
             switch (rawValue)
             {
@@ -205,6 +205,7 @@ namespace TestRailResultExport
                     return "Unknown";
             }
         }
+        
 
         public static int ConvertTimespanStringToSeconds(string timespanString)
 		{

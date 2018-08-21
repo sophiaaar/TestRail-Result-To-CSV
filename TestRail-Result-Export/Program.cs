@@ -102,16 +102,7 @@ namespace TestRailResultExport
 			Console.WriteLine("Hello World!");
 			APIClient client = ConnectToTestrail();
 
-
-            //SheetsService sheetsService = GoogleSheets.ConnectToGoogleSheets();
-            //DriveService service = GoogleDrive.ConnectToGoogleDrive();
-
-            //GetAllTests(client, 3, "130");
-            GetAllTests(client, args[0]); //Milestone ID and project ID must be entered as cmd line arg
-
-            //GoogleDrive.UploadCsvAsSpreadsheet(service);
-            //GoogleDrive.CopyToSheet(sheetsService);
-
+            GetAllTests(client, args[0]); //Milestone ID and project ID must be entered as cmd line arg         
         }
 
 		private static APIClient ConnectToTestrail()
@@ -368,7 +359,7 @@ namespace TestRailResultExport
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
                     currentTest.Config = ""; // Configs don't exist for runs outside of plans!!!!
-                    currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
+					currentTest.EditorVersion = AccessTestRail.GetEditorVersion(client, projectID, editorVersion);
 					currentTest.Estimate = estimateInSeconds;
 					currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;
@@ -564,7 +555,7 @@ namespace TestRailResultExport
                     currentTest.Defects = defects;
                     currentTest.Comment = comment;
                     currentTest.Config = config;
-                    currentTest.EditorVersion = StringManipulation.GetEditorVersion(editorVersion);
+					currentTest.EditorVersion = AccessTestRail.GetEditorVersion(client, projectID, editorVersion);
 					currentTest.Estimate = estimateInSeconds;
                     currentTest.EstimateForecast = estimateForecastInSeconds;
 					currentTest.elapsedTimeInSeconds = elapsedTimeInSeconds;

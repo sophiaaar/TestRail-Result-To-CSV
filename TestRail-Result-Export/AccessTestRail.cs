@@ -226,5 +226,82 @@ namespace TestRailResultExport
                 }
             }
         }
+
+		public static string GetEditorVersion(APIClient client, string projectID, string rawValue)
+        {
+            JArray resultFieldsArray = GetResultsFields(client);
+
+			for (int i = 0; i < resultFieldsArray.Count; i++)
+			{
+				JObject resultObject = resultFieldsArray[i].ToObject<JObject>();
+
+				if (resultObject.Property("name").Value.ToString() == "editorversion")
+				{
+					JProperty configs = resultObject.Property("configs");
+                    
+					foreach (JArray child in configs.OfType<JArray>())
+					//for (int k = 0; k < configs.OfType<JArray>().Count<JArray>(); k++)
+					{
+						//JObject context = (JObject)child["context"];
+						//JObject contextOuter = (JObject)child[0];
+						for (int k = 0; k < child.Count; k++)
+						{
+							JObject contextInner = (JObject)child[k];
+                            
+							for (int m = 0; m < contextInner.Count; m++)
+							{
+								JObject context = (JObject)contextInner["context"];
+								JArray projectIds = (JArray)context["project_ids"];
+
+
+								for (int j = 0; j < projectIds.Count; j++)
+								{
+									var projectObject = projectIds[j];
+									if (projectObject.ToString() == projectID)
+									{
+										//get list of editor versions
+										JObject options = (JObject)contextInner["options"];
+
+										string versions = options.Property("items").Value.ToString();
+                                        string[] editorVersions = versions.ToString().Split('\n');
+                                        foreach (string editorVersion in editorVersions)
+                                        {
+                                            string[] values = editorVersion.Split(',');
+                                            string id = values[0];
+                                            string name = values[1];
+                                            if (id == rawValue)
+                                            {
+                                                return name;
+                                            }
+                                        }
+
+										//for (int n = 0; n < options.Count; n++)
+										//{
+
+										//	JArray versions = (JArray)options["items"];
+										//	string[] editorVersions = versions.ToString().Split('\n');
+										//	foreach (string editorVersion in editorVersions)
+										//	{
+										//		string[] values = editorVersion.Split(',');
+										//		string id = values[0];
+										//		string name = values[1];
+										//		if (id == rawValue)
+										//		{
+										//			return name;
+										//		}
+										//	}
+										//}
+									}
+								}
+							}
+						}
+
+					}
+
+
+				}
+			}
+			return "";
+        }
     }
 }
