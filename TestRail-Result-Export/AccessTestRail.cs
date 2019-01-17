@@ -96,6 +96,10 @@ namespace TestRailResultExport
         {
             return (JArray)client.SendGet("get_result_fields");
         }
+		public static JArray GetUsers(APIClient client)
+        {
+            return (JArray)client.SendGet("get_users");
+        }
 
 
         public static List<int> GetAllSuites(JArray arrayOfSuites)
@@ -283,5 +287,14 @@ namespace TestRailResultExport
 			}
 			return "";
         }
+
+        public static string GetAssigneeName(APIClient client, string userID)
+		{
+			JObject user = (JObject)client.SendGet($"get_user/" + userID);
+
+			string name = user.Property("name").Value.ToString();
+
+			return name;
+		}
     }
 }
