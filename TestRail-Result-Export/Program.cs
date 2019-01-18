@@ -768,11 +768,8 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-<<<<<<< HEAD
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},", caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, testObject.Config, caseObject.Type, testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", testObject.Status, testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, isRetest);
-=======
+
 					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25},{26},",testObject.TestID, caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, isRetest, testObject.Assginee);
->>>>>>> d7832982005bfe1f4978c67f7f08ac3fccb9d064
 
                     csv.Append(line);
                 }
