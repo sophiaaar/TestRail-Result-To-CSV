@@ -55,6 +55,7 @@ namespace TestRailResultExport
 			public int CompletedDate;
 			public string MilestoneID;
 			public string MilestoneName;
+			public string Assginee;
             public string identifier;
 			//public string isRetest;
         }
@@ -136,6 +137,8 @@ namespace TestRailResultExport
 
 			JObject project = AccessTestRail.GetProject(client, projectID);
 			string projectName = project.Property("name").Value.ToString();
+
+			JArray users = AccessTestRail.GetUsers(client);
 
 			List<Milestone> listOfMilestones = new List<Milestone>();
 			for (int k = 0; k < milestonesArray.Count; k++)
@@ -363,6 +366,13 @@ namespace TestRailResultExport
                         completedInt = Int32.Parse(completedDate);
                     }
 
+					string assigneeId = testObject.Property("assignedto_id").Value.ToString();
+					string assigneeName = "";
+					if (assigneeId != "0")
+					{
+						assigneeName = AccessTestRail.GetAssigneeName(client, assigneeId);
+					}
+
 
                     Test currentTest;
 					currentTest.Area = area;
@@ -385,6 +395,7 @@ namespace TestRailResultExport
 					currentTest.CompletedDate = completedInt;
 					currentTest.MilestoneID = currentRun.MilestoneID;
 					currentTest.MilestoneName = milestoneName;
+					currentTest.Assginee = assigneeName;
                     currentTest.identifier = caseID + "_" + testID;
 					//currentTest.isRetest = isRetest.ToString();
 
@@ -581,6 +592,13 @@ namespace TestRailResultExport
 						completedInt = Int32.Parse(completedDate);
 					}
 
+					string assigneeId = testObject.Property("assignedto_id").Value.ToString();
+                    string assigneeName = "";
+                    if (assigneeId != "0")
+                    {
+                        assigneeName = AccessTestRail.GetAssigneeName(client, assigneeId);
+                    }
+
                     Test currentTest;
 					currentTest.Area = area;
                     currentTest.SuiteID = suiteInPlanIDs[i];
@@ -602,6 +620,7 @@ namespace TestRailResultExport
 					currentTest.CompletedDate = completedInt;
 					currentTest.MilestoneID = currentRun.MilestoneID;
 					currentTest.MilestoneName = milestoneName;
+					currentTest.Assginee = assigneeName;
                     currentTest.identifier = caseID + "_" + testID;
 					//currentTest.isRetest = isRetest.ToString();
 
@@ -716,7 +735,7 @@ namespace TestRailResultExport
         public static string CreateCSVOfTests(List<Test> sortedList, List<Case> listOfCases)
 		{
             StringBuilder csv = new StringBuilder();
-			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25}", "Unique Case", "Milestone ID", "Milestone Name", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "is Retest", "\n");
+			string header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25},{26},{27}", "Test ID", "Unique Case", "Milestone ID", "Milestone Name", "Area", "Suite Name", "Case ID", "Run Name", "Run ID", "Complete", "Identifier", "Section", "Title", "Created On", "Updated On", "Config", "Case Type", "Editor Version", "Completed Date", "Last Defects", "Last Comment", "Last Run Result", "Elapsed Time", "Estimate", "Forecast", "is Retest", "Assignee", "\n");
 			csv.Append(header);
             List<int> passValues = new List<int>();
             for (int i = 0; i < sortedList.Count; i++)
@@ -749,7 +768,11 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
+<<<<<<< HEAD
 					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},", caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, testObject.Config, caseObject.Type, testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", testObject.Status, testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, isRetest);
+=======
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25},{26},",testObject.TestID, caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, isRetest, testObject.Assginee);
+>>>>>>> d7832982005bfe1f4978c67f7f08ac3fccb9d064
 
                     csv.Append(line);
                 }
