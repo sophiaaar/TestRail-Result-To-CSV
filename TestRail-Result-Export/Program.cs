@@ -264,6 +264,14 @@ namespace TestRailResultExport
                     }
 
                     title = testObject.Property("title").Value.ToString();
+                    if (title.Contains(","))
+                    {
+                        title = title.Replace(',', ' ');
+                    }
+                    if (title.Contains('"'))
+                    {
+                        title = title.Replace('"', ' ');
+                    }
                     status = StringManipulation.GetStatus(statusArray, testObject.Property("status_id").Value.ToString());
 
 					string suiteName = "";
@@ -439,8 +447,15 @@ namespace TestRailResultExport
                     }
 
                     caseIDsInMilestone.Add(caseID);
-
-					title = testObject.Property("title").Value.ToString();
+                    title = testObject.Property("title").Value.ToString();
+                    if (title.Contains(","))
+                    {
+                        title = title.Replace(',', ' ');
+                    }
+                    if (title.Contains('"'))
+                    {
+                        title = title.Replace('"', ' ');
+                    }
                     status = StringManipulation.GetStatus(statusArray, testObject.Property("status_id").Value.ToString());
 
 					if (status == "Passed")
@@ -518,13 +533,15 @@ namespace TestRailResultExport
 
                     if (comment.Contains('"'))
                     {
-                        comment = comment.Replace('"', ' '); 
+                        comment = comment.Replace('"', ' ');
                     }
-                    else if (comment.Contains(','))
+
+                    if (comment.Contains(','))
                     {
                         comment = comment.Replace(',', ' ');
                     }
-                    else if (comment.Contains(Environment.NewLine))
+
+                    if (comment.Contains(Environment.NewLine))
                     {
                         comment = comment.Replace(Environment.NewLine, " ");
                     }
@@ -615,6 +632,14 @@ namespace TestRailResultExport
 
                 string caseID = arrayObject.Property("id").Value.ToString();
                 string caseName = arrayObject.Property("title").Value.ToString();
+                if (caseName.Contains(","))
+                {
+                    caseName = caseName.Replace(',', ' ');
+                }
+                if (caseName.Contains('"'))
+                {
+                    caseName = caseName.Replace('"', ' ');
+                }
                 string caseType = arrayObject.Property("type_id").Value.ToString();
                 string sectionID = arrayObject.Property("section_id").Value.ToString();
 
@@ -699,12 +724,19 @@ namespace TestRailResultExport
                 Test testObject = sortedList[i];
                 Case caseObject = listOfCases.Find(x => x.CaseID == testObject.CaseID); //finding the case that matches the test
 
-				bool isRetest;
+                bool isRetest;
 
-				Test findCase = sortedList.Find(o => o.CaseID == testObject.CaseID);
+                Test findCase = sortedList.Find(o => o.CaseID == testObject.CaseID);
                 if (findCase.Title != null)
                 {
-                    isRetest = true;
+                    if (sortedList.IndexOf(findCase) < i)
+                    {
+                        isRetest = true;
+                    }
+                    else
+                    {
+                        isRetest = false;
+                    }
                 }
                 else
                 {
@@ -717,7 +749,7 @@ namespace TestRailResultExport
                     {
                         csv.Append("\n"); //removes the blank row between the headings and the first result
                     }
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},", caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, "\"" + testObject.Config + "\"", "\"" + caseObject.Type + "\"", testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", "\"" + testObject.Status + "\"", testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, isRetest);
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},", caseObject.UniqueCaseIdentifier, testObject.MilestoneID, testObject.MilestoneName, testObject.Area, "\"" + testObject.SuiteName + "\"", testObject.CaseID, "\"" + testObject.RunName + "\"", testObject.RunID, testObject.isRunCompleted, testObject.identifier, "\"" + caseObject.Section + "\"", "\"" + testObject.Title + "\"", caseObject.CreatedOn, caseObject.UpdatedOn, testObject.Config, caseObject.Type, testObject.EditorVersion, testObject.CompletedDate, "\"" + testObject.Defects + "\"", "\"" + testObject.Comment + "\"", testObject.Status, testObject.elapsedTimeInSeconds.ToString(), testObject.Estimate, testObject.EstimateForecast, isRetest);
 
                     csv.Append(line);
                 }
@@ -734,7 +766,7 @@ namespace TestRailResultExport
 
 					Case caseNotRun = listOfCases.Find(x => x.CaseID == allCaseIDs[k]);
 
-					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25}", caseNotRun.UniqueCaseIdentifier, "", caseNotRun.MilestoneName, caseNotRun.Area, caseNotRun.SuiteName, caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" + caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", "\"" + caseNotRun.Type + "\"", "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, "FALSE", "\n");
+					string line = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25}", caseNotRun.UniqueCaseIdentifier, "", caseNotRun.MilestoneName, caseNotRun.Area, "\"" + caseNotRun.SuiteName + "\"", caseNotRun.CaseID, "Not included in test run", "", "false", caseNotRun.CaseID + "_00", "\"" +  caseNotRun.Section + "\"", "\"" + caseNotRun.CaseName + "\"", caseNotRun.CreatedOn, caseNotRun.UpdatedOn, "", caseNotRun.Type, "Never Tested", "", "", "", "Untested", "0", caseNotRun.Estimate, caseNotRun.EstimateForecast, "FALSE", "\n");
                     csv.Append(line);
                 }
 
